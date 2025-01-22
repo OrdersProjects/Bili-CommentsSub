@@ -2,7 +2,7 @@ import re
 import requests
 from PyQt5.QtWidgets import QDialog, QLabel, QTextEdit, QPushButton, QVBoxLayout, QMessageBox
 from PyQt5.QtCore import QThread, pyqtSignal
-from auth.cookie_manager import COOKIE_DIR, check_cookie_exists
+from utils.cookie_manager import COOKIE_DIR, check_cookie_exists
 from config import get_header
 
 def extract_cookies(cookie_str):

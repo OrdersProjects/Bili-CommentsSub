@@ -1,8 +1,7 @@
 import requests
-
 from config import get_header
 
-def get_username(cookies, dede_user_id):
+def get_username(cookies):
     """通过 cookie 请求获取该账号的昵称"""
     cookie_dict = {
         "DedeUserID": cookies.get("DedeUserID"),

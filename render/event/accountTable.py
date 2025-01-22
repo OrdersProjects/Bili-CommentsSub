@@ -1,6 +1,6 @@
 # 定时刷新账号列表
 import os
-from auth.cookie_manager import COOKIE_DIR, get_all_cookies
+from utils.cookie_manager import COOKIE_DIR, get_all_cookies
 from utils.getUserInfo import get_username
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QTableWidgetItem
@@ -22,7 +22,7 @@ def update_account_list(account_table):
             cookies = {line.split('=')[0]: line.split('=')[1].strip() for line in f.readlines()}
 
         # 获取账号的昵称和登录状态
-        uname, is_logged_in = get_username(cookies, uid)
+        uname, is_logged_in = get_username(cookies)
 
         # 创建复选框并添加到表格的第一列
         checkbox_item = QTableWidgetItem()
@@ -40,3 +40,17 @@ def start_account_list_refresh(account_table):
     """定时刷新账号列表"""
     print("开始刷新账号列表")
     QTimer.singleShot(1000, lambda: update_account_list(account_table))
+
+
+
+def get_selected_accounts(account_table):
+    """获取选中的账号列表"""
+    selected_accounts = []
+    
+    for row in range(account_table.rowCount()):
+        checkbox_item = account_table.item(row, 0)  # 获取复选框所在的列（第0列）
+        if checkbox_item.checkState() == Qt.Checked:  # 如果复选框被选中
+            uid = account_table.item(row, 1).text()  # 获取 UID
+            selected_accounts.append(uid)  # 将选中的 UID 加入列表
+    
+    return selected_accounts

@@ -8,7 +8,8 @@ import sys
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtCore import Qt
 
-from render.accountTableRef import start_account_list_refresh
+from render.event.accountTable import start_account_list_refresh
+from render.event.videoComment import on_collect_comments_clicked
 
 def create_gui():
     app = QApplication(sys.argv)
@@ -33,14 +34,13 @@ def create_gui():
 
     # 评论区数据表格
     comment_table = QTableWidget()
-    comment_table.setColumnCount(6)
-    comment_table.setHorizontalHeaderLabels(["选择", "序号", "昵称", "uid", "评论内容", "结果"])
+    comment_table.setColumnCount(5)
+    comment_table.setHorizontalHeaderLabels(["选择", "昵称", "uid", "性别", "结果"])
     comment_table.setColumnWidth(0, 30)
-    comment_table.setColumnWidth(1, 50)
-    comment_table.setColumnWidth(2, 150)
-    comment_table.setColumnWidth(3, 150)
-    comment_table.setColumnWidth(4, 400)
-    comment_table.setColumnWidth(5, 100)
+    comment_table.setColumnWidth(1, 200)
+    comment_table.setColumnWidth(2, 200)
+    comment_table.setColumnWidth(3, 50)
+    comment_table.setColumnWidth(4, 100)
 
     btn_select_all_comments = QPushButton("全选")
     btn_clear_comments = QPushButton("清空列表")
@@ -156,18 +156,8 @@ def create_gui():
     # 开始关注按钮的事件连接
     # btn_start_follow.clicked.connect(lambda: on_start_follow_clicked(account_table))
 
+    # 开始采集按钮的事件连接
+    btn_collect_comments.clicked.connect(lambda: on_collect_comments_clicked(input_works.text(), comment_table, account_table))
+
     window.show()
     sys.exit(app.exec_())
-
-
-def get_selected_accounts(account_table):
-    """获取选中的账号列表"""
-    selected_accounts = []
-    
-    for row in range(account_table.rowCount()):
-        checkbox_item = account_table.item(row, 0)  # 获取复选框所在的列（第0列）
-        if checkbox_item.checkState() == Qt.Checked:  # 如果复选框被选中
-            uid = account_table.item(row, 1).text()  # 获取 UID
-            selected_accounts.append(uid)  # 将选中的 UID 加入列表
-    
-    return selected_accounts
