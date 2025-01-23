@@ -35,12 +35,12 @@ def update_account_list(account_table):
         account_table.setItem(row, 3, QTableWidgetItem("已登录" if is_logged_in else "未登录"))  # 登录状态
         account_table.setItem(row, 4, QTableWidgetItem("待执行"))  # 执行状态（暂时不管）
 
+
 # 在 GUI 中定时更新账号列表
 def start_account_list_refresh(account_table):
     """定时刷新账号列表"""
     print("开始刷新账号列表")
     QTimer.singleShot(1000, lambda: update_account_list(account_table))
-
 
 
 def get_selected_accounts(account_table):
@@ -54,3 +54,13 @@ def get_selected_accounts(account_table):
             selected_accounts.append(uid)  # 将选中的 UID 加入列表
     
     return selected_accounts
+
+
+def set_execution_status(account_table, uids, status="已执行"):
+    """根据传入的 uid 列表设置执行状态为指定状态"""
+    for row in range(account_table.rowCount()):
+        uid_item = account_table.item(row, 1)  # 获取 UID 所在列（第 1 列）
+        if uid_item and uid_item.text() in uids:
+            execution_status_item = account_table.item(row, 4)  # 获取执行状态列（第 4 列）
+            if execution_status_item:
+                execution_status_item.setText(status)  # 设置执行状态为 "已执行" 或其他状态

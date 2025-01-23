@@ -2,14 +2,15 @@ from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QTableWidget,
     QPushButton, QLabel, QLineEdit, QSpinBox, QTextEdit
 )
-from auth.login import on_scan_login_clicked, on_cookie_login_clicked
+
 import sys
 
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtCore import Qt
 
+from auth.login import on_cookie_login_clicked, on_scan_login_clicked
 from render.event.accountTable import start_account_list_refresh
-from render.event.videoComment import on_collect_comments_clicked
+from render.event.videoComment import on_clear_comments_clicked, on_collect_comments_clicked, on_export_comments_clicked, on_select_all_comments_clicked
 
 def create_gui():
     app = QApplication(sys.argv)
@@ -34,26 +35,23 @@ def create_gui():
 
     # 评论区数据表格
     comment_table = QTableWidget()
-    comment_table.setColumnCount(5)
-    comment_table.setHorizontalHeaderLabels(["选择", "昵称", "uid", "性别", "结果"])
+    comment_table.setColumnCount(6)
+    comment_table.setHorizontalHeaderLabels(["选择", "昵称", "uid", "性别", "关注结果", "私信结果"])
     comment_table.setColumnWidth(0, 30)
     comment_table.setColumnWidth(1, 200)
     comment_table.setColumnWidth(2, 200)
     comment_table.setColumnWidth(3, 50)
     comment_table.setColumnWidth(4, 100)
+    comment_table.setColumnWidth(5, 100)
 
     btn_select_all_comments = QPushButton("全选")
     btn_clear_comments = QPushButton("清空列表")
     btn_export_comments = QPushButton("导出表格")
-    lbl_current_execution = QLabel("当前执行序号：")
-    input_execution_no = QLineEdit()
 
     comment_buttons_layout = QHBoxLayout()
     comment_buttons_layout.addWidget(btn_select_all_comments)
     comment_buttons_layout.addWidget(btn_clear_comments)
     comment_buttons_layout.addWidget(btn_export_comments)
-    comment_buttons_layout.addWidget(lbl_current_execution)
-    comment_buttons_layout.addWidget(input_execution_no)
 
     comment_layout.addLayout(top_layout)
     comment_layout.addWidget(comment_table)
@@ -153,11 +151,13 @@ def create_gui():
     # cookie登录按钮的事件连接
     btn_import_cookies.clicked.connect(lambda: on_cookie_login_clicked(window))
 
-    # 开始关注按钮的事件连接
-    # btn_start_follow.clicked.connect(lambda: on_start_follow_clicked(account_table))
-
     # 开始采集按钮的事件连接
     btn_collect_comments.clicked.connect(lambda: on_collect_comments_clicked(input_works.text(), comment_table, account_table))
+
+    # 采集区全选/清空/导出按钮的事件连接
+    btn_select_all_comments.clicked.connect(lambda: on_select_all_comments_clicked(comment_table))
+    btn_clear_comments.clicked.connect(lambda: on_clear_comments_clicked(comment_table))
+    btn_export_comments.clicked.connect(lambda: on_export_comments_clicked(comment_table))
 
     window.show()
     sys.exit(app.exec_())

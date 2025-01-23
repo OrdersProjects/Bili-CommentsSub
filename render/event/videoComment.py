@@ -1,12 +1,13 @@
 import re
+import csv
 from PyQt5.QtWidgets import (
-    QTableWidgetItem, QMessageBox
+    QTableWidgetItem, QMessageBox, QFileDialog
 )
 from PyQt5.QtCore import Qt
 
 from render.event.accountTable import get_selected_accounts
 from utils.cookie_manager import load_cookies
-from utils.getVideoInfo import calculate_total_pages, get_comments, get_video_comment_count
+from utils.getVideoInfo import calculate_total_pages, extract_video_id, get_comments, get_video_comment_count
 
 
 def on_collect_comments_clicked(input_url, comment_table, account_table):
@@ -64,22 +65,42 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
         checkbox_item = QTableWidgetItem()
         checkbox_item.setCheckState(Qt.Unchecked)  # 默认不选中
         comment_table.setItem(row, 0, checkbox_item)  # 第 0 列为复选框
-
         comment_table.setItem(row, 1, QTableWidgetItem(uname))  # 昵称
         comment_table.setItem(row, 2, QTableWidgetItem(uid))  # UID
         comment_table.setItem(row, 3, QTableWidgetItem(sex))  # 性别
 
-def extract_video_id(url):
-    """提取 BV 号或 AV 号"""
-    bv_pattern = re.compile(r'BV([a-zA-Z0-9]+)')
-    av_pattern = re.compile(r'av(\d+)')
 
-    bv_match = bv_pattern.search(url)
-    av_match = av_pattern.search(url)
+def on_select_all_comments_clicked(comment_table):
+    """全选按钮点击事件"""
+    for row in range(comment_table.rowCount()):
+        checkbox_item = comment_table.item(row, 0)  # 获取复选框所在的列（第0列）
+        checkbox_item.setCheckState(Qt.Checked)  # 设置为选中状态
 
-    if bv_match:
-        return 'BV' + bv_match.group(1)
-    elif av_match:
-        return 'av' + av_match.group(1)
-    else:
-        return None
+
+def on_clear_comments_clicked(comment_table):
+    """清空列表按钮点击事件"""
+    comment_table.setRowCount(0)  # 清空表格中的所有行
+
+
+def on_export_comments_clicked(comment_table):
+    """导出表格按钮点击事件"""
+    # 获取表格的数据
+    rows = []
+    for row in range(comment_table.rowCount()):
+        row_data = []
+        for col in range(comment_table.columnCount()):
+            item = comment_table.item(row, col)
+            if item is not None:
+                row_data.append(item.text())
+            else:
+                row_data.append("")  # 如果单元格为空，加入空字符串
+        rows.append(row_data)
+    
+    # 保存为 CSV 文件
+    filename, _ = QFileDialog.getSaveFileName(None, "保存为 CSV", "", "CSV Files (*.csv)")
+    if filename:
+        with open(filename, mode='w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerow(["昵称", "UID", "性别", "关注结果", "私信结果"])  # 写入表头
+            writer.writerows(rows)  # 写入表格数据
+
