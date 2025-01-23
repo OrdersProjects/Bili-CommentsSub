@@ -1,2 +1,6 @@
 /cookies/*
 /__pycache__/*
+*.csv
+__pycache__/
+*.pyc
+*.pyo
