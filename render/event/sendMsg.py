@@ -8,6 +8,8 @@ from PyQt5.QtCore import Qt
 from render.event.accountTable import get_selected_accounts, set_execution_status
 from render.event.commentTable import set_message_status
 from utils.cookie_manager import load_cookies
+from auth.bili_ticket import get_bili_ticket
+import json
 
 def generate_deviceid():
     deviceid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
@@ -17,34 +19,29 @@ def send_msg(sender_uid, receiver_uid, cookies, message):
     """发送私信"""
     url = "https://api.vc.bilibili.com/web_im/v1/web_im/send_msg"
     deviceid = generate_deviceid()
+    bili_ticket = get_bili_ticket(cookies.get("bili_jct"))
     cookie_dict = {
         "SESSDATA": cookies.get("SESSDATA"),
         "bili_jct": cookies.get("bili_jct"),
         "sid": cookies.get("sid"),
         "DedeUserID": cookies.get("DedeUserID"),
-        "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5")
+        "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
+        "bili_ticket": bili_ticket,
     }
     # body参数(application/x-www-form-urlencoded)
-    post_data = {
-        "msg[sender_uid]": sender_uid,
-        "msg[receiver_id]": receiver_uid,
-        "msg[receiver_type]": 1,
-        "msg[msg_type]": 1,
-        "msg[content]": message,
-        "msg[device_id]": deviceid,
-        "msg[biz_id]": 0,
-        "msg[mid]": sender_uid,
-        "csrf": cookie_dict["bili_jct"],
-    }
-    # 将post_data转换为application/x-www-form-urlencoded格式
-    encoded_data = "&".join([f"{key}={value}" for key, value in post_data.items()])
-    response = requests.post(url, cookies=cookie_dict, headers=get_header(), data=encoded_data)
+    # 将 message 转换为 JSON 字符串
+    message_json = json.dumps({"content": message})
+    payload = f"msg[sender_uid]={sender_uid}&msg[receiver_id]={receiver_uid}&msg[receiver_type]=1&msg[msg_type]=1&msg[content]={message_json}&msg[dev_id]={deviceid}&csrf={cookies.get('bili_jct')}&msg[timestamp]={int(time.time())}"
+    #print(payload)
+    response = requests.post(url, cookies=cookie_dict, headers=get_header(), data=payload)
     data = response.json()
     print(f"发送私信{receiver_uid}: 内容为{message}, {data['message']}, code:{data['code']}")
     return data["code"]  # 返回0表示成功
 
 def on_send_msg_clicked(account_table, comment_table, message, spin_delay, spin_operations_per_account, window):
     """开始私信按钮事件"""
+    if not message:
+        QMessageBox.warning(window, "警告", "请输入私信内容！")
     # 获取选中的登录账号
     selected_accounts = get_selected_accounts(account_table)
     if not selected_accounts:

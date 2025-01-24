@@ -28,5 +28,6 @@ def get_header():
     return {
         'User-Agent': user_agent,
         'Accept': 'application/json',
-        'Content-Type': 'application/json',
+        #'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded'
     }

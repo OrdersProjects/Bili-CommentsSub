@@ -8,6 +8,7 @@ from render.event.accountTable import (
 from utils.cookie_manager import load_cookies
 from render.event.commentTable import set_follow_status
 from config import get_header
+from auth.bili_ticket import get_bili_ticket
 import requests
 import time
 
@@ -59,16 +60,18 @@ def on_follow_account_clicked(account_table, comment_table, spin_operations_per_
 def follow_account(fid, cookies):
     """关注账号"""
     url = f"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D"
+    bili_ticket = get_bili_ticket(cookies.get("bili_jct"))
     cookie_dict = {
         "SESSDATA": cookies.get("SESSDATA"),
         "bili_jct": cookies.get("bili_jct"),  # CSRF Token即为bili_jct
         "sid": cookies.get("sid"),
         "DedeUserID": cookies.get("DedeUserID"),
-        "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5")
+        "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
+        "bili_ticket": bili_ticket
     }
     # post参数
-    post_data =  f"fid:{fid}&act:1&re_src:14&csrf:{cookies.get('bili_jct')}"
-    response = requests.post(url, cookies=cookie_dict, headers=get_header(), data=post_data)
+    payload = f"csrf={cookies.get('bili_jct')}&act=1&re_src=14&fid={fid}"
+    response = requests.post(url, cookies=cookie_dict, headers=get_header(), data=payload)
     data = response.json()
     print(f"关注账户{fid}: {data['message']},code:{data['code']}")
     return data["code"]  # 0为成功
