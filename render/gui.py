@@ -11,6 +11,8 @@ from PyQt5.QtCore import Qt
 from auth.login import on_cookie_login_clicked, on_scan_login_clicked
 from render.event.accountTable import start_account_list_refresh
 from render.event.videoComment import on_clear_comments_clicked, on_collect_comments_clicked, on_export_comments_clicked, on_select_all_comments_clicked
+from render.event.followAccount import on_follow_account_clicked
+from render.event.sendMsg import on_send_msg_clicked
 
 def create_gui():
     app = QApplication(sys.argv)
@@ -158,6 +160,11 @@ def create_gui():
     btn_select_all_comments.clicked.connect(lambda: on_select_all_comments_clicked(comment_table))
     btn_clear_comments.clicked.connect(lambda: on_clear_comments_clicked(comment_table))
     btn_export_comments.clicked.connect(lambda: on_export_comments_clicked(comment_table))
+
+    # 开始关注的事件连接
+    btn_start_follow.clicked.connect(lambda: on_follow_account_clicked(account_table,comment_table,spin_delay.value(),spin_operations_per_account.value(),window))
+    # 开始私信的事件连接
+    btn_start_message.clicked.connect(lambda: on_send_msg_clicked(account_table,comment_table,text_private_message.toPlainText(),spin_delay.value(),spin_operations_per_account.value(),window))
 
     window.show()
     sys.exit(app.exec_())
