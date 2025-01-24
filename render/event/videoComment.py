@@ -104,3 +104,38 @@ def on_export_comments_clicked(comment_table):
             writer.writerow(["昵称", "UID", "性别", "关注结果", "私信结果"])  # 写入表头
             writer.writerows(rows)  # 写入表格数据
 
+#取消全选按钮点击事件
+def on_deselect_all_comments_clicked(comment_table):
+    """
+    取消全选评论区数据表格中的所有行
+    :param comment_table: 评论区数据表格
+    """
+    for row in range(comment_table.rowCount()):
+        comment_table.item(row, 0).setCheckState(Qt.Unchecked)
+
+# 只选择男性
+def on_select_male_comments_clicked(comment_table):
+    """
+    只选择评论区数据表格中的男性行
+    :param comment_table: 评论区数据表格
+    """
+    for row in range(comment_table.rowCount()):
+        gender_item = comment_table.item(row, 3)
+        if gender_item and gender_item.text() == "男":
+            comment_table.item(row, 0).setCheckState(Qt.Checked)
+        else:
+            comment_table.item(row, 0).setCheckState(Qt.Unchecked)
+
+#只选择女性
+def on_select_female_comments_clicked(comment_table):
+    """
+    只选择评论区数据表格中的女性行
+    :param comment_table: 评论区数据表格
+    """
+    for row in range(comment_table.rowCount()):
+        gender_item = comment_table.item(row, 3)
+        if gender_item and gender_item.text() == "女":
+            comment_table.item(row, 0).setCheckState(Qt.Checked)
+        else:
+            comment_table.item(row, 0).setCheckState(Qt.Unchecked)
+

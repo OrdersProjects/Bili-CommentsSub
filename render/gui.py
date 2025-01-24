@@ -10,9 +10,10 @@ from PyQt5.QtCore import Qt
 
 from auth.login import on_cookie_login_clicked, on_scan_login_clicked
 from render.event.accountTable import start_account_list_refresh
-from render.event.videoComment import on_clear_comments_clicked, on_collect_comments_clicked, on_export_comments_clicked, on_select_all_comments_clicked
+from render.event.videoComment import on_clear_comments_clicked, on_collect_comments_clicked, on_export_comments_clicked, on_select_all_comments_clicked, on_deselect_all_comments_clicked, on_select_male_comments_clicked, on_select_female_comments_clicked
 from render.event.followAccount import on_follow_account_clicked
 from render.event.sendMsg import on_send_msg_clicked
+from render.event.fans import on_collect_fans_clicked
 
 def create_gui():
     app = QApplication(sys.argv)
@@ -23,7 +24,7 @@ def create_gui():
     main_layout = QGridLayout()
 
     # 作品评论采集区域
-    comment_group = QGroupBox("作品评论采集")
+    comment_group = QGroupBox("作品评论采集/粉丝列表采集")
     comment_layout = QVBoxLayout()
 
     top_layout = QHBoxLayout()
@@ -31,15 +32,26 @@ def create_gui():
     input_works = QLineEdit()
     btn_collect_comments = QPushButton("开始采集")
 
+    #粉丝列表采集
+    lbl_fans = QLabel("目标用户UID")
+    input_fans = QLineEdit()
+    btn_collect_fans = QPushButton("开始采集")
+
     top_layout.addWidget(lbl_works)
     top_layout.addWidget(input_works)
     top_layout.addWidget(btn_collect_comments)
 
+    top_layout.addWidget(lbl_fans)
+    top_layout.addWidget(input_fans)
+    top_layout.addWidget(btn_collect_fans)
+
+
     # 评论区数据表格
     comment_table = QTableWidget()
     comment_table.setColumnCount(6)
+    #comment_table.setRowCount(1000)
     comment_table.setHorizontalHeaderLabels(["选择", "昵称", "uid", "性别", "关注结果", "私信结果"])
-    comment_table.setColumnWidth(0, 30)
+    comment_table.setColumnWidth(0, 40)
     comment_table.setColumnWidth(1, 200)
     comment_table.setColumnWidth(2, 200)
     comment_table.setColumnWidth(3, 50)
@@ -49,11 +61,17 @@ def create_gui():
     btn_select_all_comments = QPushButton("全选")
     btn_clear_comments = QPushButton("清空列表")
     btn_export_comments = QPushButton("导出表格")
+    btn_deselect_all_comments = QPushButton("取消全选")
+    btn_select_male_comments = QPushButton("只选男性")
+    btn_select_female_comments = QPushButton("只选女性")
 
     comment_buttons_layout = QHBoxLayout()
     comment_buttons_layout.addWidget(btn_select_all_comments)
     comment_buttons_layout.addWidget(btn_clear_comments)
     comment_buttons_layout.addWidget(btn_export_comments)
+    comment_buttons_layout.addWidget(btn_deselect_all_comments)
+    comment_buttons_layout.addWidget(btn_select_male_comments)
+    comment_buttons_layout.addWidget(btn_select_female_comments)
 
     comment_layout.addLayout(top_layout)
     comment_layout.addWidget(comment_table)
@@ -69,7 +87,7 @@ def create_gui():
     account_table = QTableWidget()
     account_table.setColumnCount(5)
     account_table.setHorizontalHeaderLabels(["选择", "UID", "昵称", "登录状态", "执行状态"])
-    account_table.setColumnWidth(0, 15)
+    account_table.setColumnWidth(0, 35)
     account_table.setColumnWidth(1, 100)
     account_table.setColumnWidth(2, 150)
     account_table.setColumnWidth(3, 80)
@@ -153,13 +171,25 @@ def create_gui():
     # cookie登录按钮的事件连接
     btn_import_cookies.clicked.connect(lambda: on_cookie_login_clicked(window))
 
-    # 开始采集按钮的事件连接
+    # 评论区开始采集按钮的事件连接
     btn_collect_comments.clicked.connect(lambda: on_collect_comments_clicked(input_works.text(), comment_table, account_table))
+
+    # 粉丝列表开始采集按钮的事件连接
+    btn_collect_fans.clicked.connect(lambda: on_collect_fans_clicked(input_fans.text(), comment_table, account_table))
 
     # 采集区全选/清空/导出按钮的事件连接
     btn_select_all_comments.clicked.connect(lambda: on_select_all_comments_clicked(comment_table))
     btn_clear_comments.clicked.connect(lambda: on_clear_comments_clicked(comment_table))
     btn_export_comments.clicked.connect(lambda: on_export_comments_clicked(comment_table))
+
+    # 采集区取消全选按钮的事件连接
+    btn_deselect_all_comments.clicked.connect(lambda: on_deselect_all_comments_clicked(comment_table))
+
+    # 采集区只选男性按钮的事件连接
+    btn_select_male_comments.clicked.connect(lambda: on_select_male_comments_clicked(comment_table))
+
+     # 采集区只选女性按钮的事件连接
+    btn_select_female_comments.clicked.connect(lambda: on_select_female_comments_clicked(comment_table))
 
     # 开始关注的事件连接
     btn_start_follow.clicked.connect(lambda: on_follow_account_clicked(account_table,comment_table,spin_delay.value(),spin_operations_per_account.value(),window))

@@ -22,3 +22,19 @@ def get_username(cookies):
     except Exception as e:
         print(f"请求错误：{e}")
         return None, False  # 请求失败
+
+
+#通过UID获取用户性别
+def get_gender(uid):
+    """通过 UID 请求获取该账号的性别"""
+    try:
+        response = requests.get(f"https://api.bilibili.com/x/web-interface/card?mid={uid}", headers=get_header())
+        result = response.json()
+        if result["code"] == 0:
+            gender = result["data"]["card"]["sex"]
+            return gender
+        else:
+            return "失败"
+    except Exception as e:
+        print(f"请求错误：{e}")
+        return "失败"

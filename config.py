@@ -29,5 +29,6 @@ def get_header():
         'User-Agent': user_agent,
         'Accept': 'application/json',
         #'Content-Type': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'referer': 'https://space.bilibili.com/'
     }
