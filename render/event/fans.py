@@ -7,7 +7,7 @@ from render.event.accountTable import get_selected_accounts
 from utils.cookie_manager import load_cookies
 from utils.getUserInfo import get_gender
 from config import get_header
-from auth import get_bili_ticket
+from auth.bili_ticket import get_bili_ticket
 import requests
 import json
 
