@@ -39,6 +39,18 @@ def load_cookies(dede_user_id):
     return cookies
 
 
+def delete_cookie(dede_user_id):
+    """
+    删除指定用户的 cookie 文件。
+    """
+    cookie_file_path = os.path.join(COOKIE_DIR, f"{dede_user_id}.txt")
+    if os.path.exists(cookie_file_path):
+        os.remove(cookie_file_path)
+        print(f"Cookie 文件已删除: {cookie_file_path}")
+    else:
+        print(f"未找到 Cookie 文件: {cookie_file_path}")
+    
+
 def check_cookie_exists(dede_user_id):
     """检查是否已存在该用户的 cookie"""
     cookie_file_path = os.path.join(COOKIE_DIR, f"{dede_user_id}.txt")

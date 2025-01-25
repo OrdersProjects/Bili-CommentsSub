@@ -1,11 +1,14 @@
 # 定时刷新账号列表
 import os
-from utils.cookie_manager import COOKIE_DIR, get_all_cookies
+from render.event.browser import open_browser_with_cookie
+from utils.cookie_manager import COOKIE_DIR, delete_cookie, get_all_cookies, load_cookies
 from utils.getUserInfo import get_username
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtCore import Qt
-
+from PyQt5.QtWidgets import (
+    QMenu, QTableWidgetItem
+)
 def update_account_list(account_table):
     """更新账号列表"""
     # 获取所有 cookie 文件（即 UID）
@@ -64,3 +67,23 @@ def set_execution_status(account_table, uids, status="已执行"):
             execution_status_item = account_table.item(row, 4)  # 获取执行状态列（第 4 列）
             if execution_status_item:
                 execution_status_item.setText(status)  # 设置执行状态为 "已执行" 或其他状态
+
+
+ # 添加右键菜单功能
+def show_context_menu(account_table, input_browser_path, position):
+    index = account_table.indexAt(position)
+    if not index.isValid():
+        return
+
+    uid = account_table.item(index.row(), 1).text()
+
+    menu = QMenu()
+    open_home_action = menu.addAction("打开主页")
+    delete_account_action = menu.addAction("删除账号")
+
+    action = menu.exec_(account_table.viewport().mapToGlobal(position))
+    if action == open_home_action:
+        open_browser_with_cookie(input_browser_path.text(), uid)
+    elif action == delete_account_action:
+        delete_cookie(uid)
+        account_table.removeRow(index.row())

@@ -101,7 +101,6 @@ def on_export_comments_clicked(comment_table):
     if filename:
         with open(filename, mode='w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            writer.writerow(["昵称", "UID", "性别", "关注结果", "私信结果"])  # 写入表头
             writer.writerows(rows)  # 写入表格数据
 
 #取消全选按钮点击事件
