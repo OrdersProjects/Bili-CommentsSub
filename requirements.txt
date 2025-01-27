@@ -3,3 +3,4 @@ requests
 qrcode
 Pillow
 numpy
+selenium
