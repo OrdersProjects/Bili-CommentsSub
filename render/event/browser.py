@@ -1,8 +1,10 @@
+
 from PyQt5.QtWidgets import (
     QMessageBox, QFileDialog
 )
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.common.by import By
 from utils.config_manager import save_browser_path_to_config
 from utils.cookie_manager import load_cookies
@@ -26,13 +28,20 @@ def open_browser_with_cookie(browser_path, uid):
         url = f"https://space.bilibili.com/{uid}"
 
         # 配置 Chrome 启动选项
-        options = Options()
+        if "chrome.exe" in browser_path.lower():
+            options = Options()
+        elif "msedge.exe" in browser_path.lower():
+            options = EdgeOptions()
+        
         options.binary_location = browser_path  # 指定 Chrome 浏览器路径
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
 
         # 启动浏览器
-        driver = webdriver.Chrome(options=options)
+        if "chrome.exe" in browser_path.lower():
+            driver = webdriver.Chrome(options=options)
+        elif "msedge.exe" in browser_path.lower():
+            driver = webdriver.Edge(options=options)
 
         # 打开目标页面，确保加载了正确的域名
         driver.get(url)

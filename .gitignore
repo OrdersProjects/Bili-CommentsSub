@@ -1,9 +1,11 @@
 /cookies/*
-/__pycache__/*
-*/__pycache__/*
+
 __pycache__/
 .venv/
+build/
+dist/
 
 *.csv
 *.pyc
 *.pyo
+*.spec
