@@ -11,6 +11,9 @@ from auth.bili_ticket import get_bili_ticket
 import requests
 import json
 
+from utils.log_manager import LogManager
+log_manager = LogManager()
+
 def on_collect_fans_clicked(input_uid, comment_table, account_table):
     """粉丝采集按钮点击事件"""
     uid = input_uid
@@ -31,6 +34,8 @@ def on_collect_fans_clicked(input_uid, comment_table, account_table):
             continue
         bili_ticket = get_bili_ticket(cookies.get("bili_jct"))
         cookie_dict = {
+            "buvid3": cookies.get("buvid3"),
+            "buvid4": cookies.get("buvid4"),
             "DedeUserID": cookies.get("DedeUserID"),
             "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
             "SESSDATA": cookies.get("SESSDATA"),
@@ -70,6 +75,7 @@ def on_collect_fans_clicked(input_uid, comment_table, account_table):
                     else:
                         params["pn"] += 1  # 增加页码
                 else:
+                    log_manager.log("on_collect_fans_clicked", response.text)
                     QMessageBox.warning(None, "错误", f"请求失败，错误代码: {data['code']}")
                     break
             except requests.exceptions.RequestException as e:

@@ -4,6 +4,8 @@ from PyQt5.QtWidgets import QDialog, QLabel, QTextEdit, QPushButton, QVBoxLayout
 from PyQt5.QtCore import QThread, pyqtSignal
 from utils.cookie_manager import COOKIE_DIR, check_cookie_exists
 from config import get_header
+from utils.log_manager import LogManager
+log_manager = LogManager()
 
 def extract_cookies(cookie_str):
     """
@@ -12,7 +14,7 @@ def extract_cookies(cookie_str):
     cookie_dict = {}
 
     # 使用正则提取所需的 cookie 项
-    cookies_to_extract = ['DedeUserID', 'DedeUserID__ckMd5', 'SESSDATA', 'bili_jct', 'sid']
+    cookies_to_extract = ['buvid3', 'buvid4', 'DedeUserID', 'DedeUserID__ckMd5', 'SESSDATA', 'bili_jct', 'sid']
     for cookie_name in cookies_to_extract:
         match = re.search(f"{cookie_name}=([^;]+)", cookie_str)
         if match:
@@ -27,6 +29,8 @@ def validate_cookies(cookies):
     通过请求 Bilibili 的接口来验证 cookies 是否有效
     """
     cookies_dict = {
+        "buvid3": cookies.get("buvid3"),
+        "buvid4": cookies.get("buvid4"),
         "DedeUserID": cookies.get("DedeUserID"),
         "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
         "SESSDATA": cookies.get("SESSDATA"),
@@ -40,6 +44,7 @@ def validate_cookies(cookies):
         if result["code"] == 0:
             return True  # 有效
         else:
+            log_manager.log("validate_cookies", response.text)
             return False  # 无效
     except Exception as e:
         print(f"验证 cookies 时出错：{e}")

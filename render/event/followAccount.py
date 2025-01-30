@@ -12,6 +12,9 @@ from auth.bili_ticket import get_bili_ticket
 import requests
 import time
 
+from utils.log_manager import LogManager
+log_manager = LogManager()
+
 
 # 开始关注按钮事件
 def on_follow_account_clicked(account_table, comment_table, spin_operations_per_account, spin_delay, window):
@@ -62,6 +65,8 @@ def follow_account(fid, cookies):
     url = f"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D"
     bili_ticket = get_bili_ticket(cookies.get("bili_jct"))
     cookie_dict = {
+        "buvid3": cookies.get("buvid3"),
+        "buvid4": cookies.get("buvid4"),
         "SESSDATA": cookies.get("SESSDATA"),
         "bili_jct": cookies.get("bili_jct"),  # CSRF Token即为bili_jct
         "sid": cookies.get("sid"),
@@ -74,4 +79,8 @@ def follow_account(fid, cookies):
     response = requests.post(url, cookies=cookie_dict, headers=get_header(), data=payload)
     data = response.json()
     print(f"关注账户{fid}: {data['message']},code:{data['code']}")
+    if data["code"] == 0:
+        return data["code"]
+    else:
+        log_manager.log("follow_account", response.text)
     return data["code"]  # 0为成功

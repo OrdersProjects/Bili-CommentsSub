@@ -138,3 +138,30 @@ def on_select_female_comments_clicked(comment_table):
         else:
             comment_table.item(row, 0).setCheckState(Qt.Unchecked)
 
+
+def on_clear_followed_comments_clicked(comment_table):
+    """清除已关注的评论区数据"""
+    rows_to_remove = []
+    
+    for row in range(comment_table.rowCount()):
+        follow_status_item = comment_table.item(row, 4)  # 获取关注状态（第五列）
+        if follow_status_item and follow_status_item.text() == "已关注":
+            rows_to_remove.append(row)  # 记录要删除的行
+    
+    # 删除记录的行，从最后一行开始删除，避免删除时改变了行的索引
+    for row in reversed(rows_to_remove):
+        comment_table.removeRow(row)
+
+
+def on_clear_sent_messages_clicked(comment_table):
+    """清除已私信的评论区数据"""
+    rows_to_remove = []
+    
+    for row in range(comment_table.rowCount()):
+        msg_status_item = comment_table.item(row, 5)  # 获取私信状态（第六列）
+        if msg_status_item and msg_status_item.text() == "已私信":
+            rows_to_remove.append(row)  # 记录要删除的行
+    
+    # 删除记录的行，从最后一行开始删除，避免删除时改变了行的索引
+    for row in reversed(rows_to_remove):
+        comment_table.removeRow(row)

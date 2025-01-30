@@ -2,6 +2,8 @@ import re
 import requests
 
 from config import get_header
+from utils.log_manager import LogManager
+log_manager = LogManager()
 
 def get_comments(video_id, page, cookies):
 
@@ -10,6 +12,8 @@ def get_comments(video_id, page, cookies):
 
     for page in range(1, page + 1):
         cookie_dict = {
+            "buvid3": cookies.get("buvid3"),
+            "buvid4": cookies.get("buvid4"),
             "DedeUserID": cookies.get("DedeUserID"),
             "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
             "SESSDATA": cookies.get("SESSDATA"),
@@ -25,6 +29,7 @@ def get_comments(video_id, page, cookies):
         data = response.json()
 
         if data['code'] != 0 or 'data' not in data:
+            log_manager.log("get_comments", response.text)
             break
 
         replies = data['data'].get('replies', [])
@@ -49,6 +54,8 @@ def get_comments(video_id, page, cookies):
 def get_video_comment_count(video_id, cookies):
     """获取视频的评论总数"""
     cookie_dict = {
+        "buvid3": cookies.get("buvid3"),
+        "buvid4": cookies.get("buvid4"),
         "DedeUserID": cookies.get("DedeUserID"),
         "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
         "SESSDATA": cookies.get("SESSDATA"),
@@ -66,6 +73,7 @@ def get_video_comment_count(video_id, cookies):
     data = response.json()
 
     if data['code'] != 0 or 'data' not in data:
+        log_manager.log("get_video_comment_count", response.text)
         return 0
 
     # 获取评论总数

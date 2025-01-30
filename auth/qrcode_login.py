@@ -4,10 +4,12 @@ import time
 import qrcode
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QImage
 import numpy as np
-
 from config import get_header
+from utils.log_manager import LogManager
+
+log_manager = LogManager()
 
 def get_qr_code():
     try:
@@ -16,13 +18,14 @@ def get_qr_code():
             data = response.json()
             if data['code'] == 0:
                 return data['data']['url'], data['data']['qrcode_key']
+        else:
+            log_manager.log("get_qr_code", response.text)
         print("二维码生成失败：", response.text)
     except Exception as e:
         print("获取二维码时发生错误：", str(e))
     return None, None
 
 
-# 创建一个线程执行二维码轮询任务
 class QrCodeLoginThread(QThread):
     status_update = pyqtSignal(str)  # 用来更新状态的信号
     login_success = pyqtSignal(object)  # 登录成功时发射cookies信号
@@ -43,7 +46,14 @@ class QrCodeLoginThread(QThread):
                 if data['data']['code'] == 0:
                     # 登录成功
                     self.status_update.emit("登录成功！")
-                    self.login_success.emit(response.cookies)
+                    # 在这里进行获取 b_3 和 b_4，并添加到 cookies 中
+                    cookies = response.cookies
+
+                    # 获取b_3和b_4并将其添加到cookies
+                    self._add_additional_cookies(cookies)
+
+                    # 发射更新后的cookies
+                    self.login_success.emit(cookies)
                     break
                 elif data['data']['code'] == 86038:
                     # 二维码已失效
@@ -55,8 +65,35 @@ class QrCodeLoginThread(QThread):
                 elif data['data']['code'] == 86101:
                     # 未扫码
                     self.status_update.emit("等待扫码...")
-                
+
             time.sleep(2)  # 每隔2秒轮询一次
+
+    def _add_additional_cookies(self, cookies):
+        """发起请求获取b_3和b_4，并将其作为buvid3和buvid4添加到cookies中"""
+        try:
+            # 使用当前的cookies发起请求
+            response = requests.get(
+                'https://api.bilibili.com/x/frontend/finger/spi',
+                headers=get_header(),
+                cookies=cookies
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                if data['code'] == 0:
+                    b_3 = data['data'].get('b_3')
+                    b_4 = data['data'].get('b_4')
+
+                    # 如果b_3和b_4存在，则添加到cookies
+                    if b_3:
+                        cookies.set('buvid3', b_3)
+                    if b_4:
+                        cookies.set('buvid4', b_4)
+
+                    print(f"添加到Cookies: buvid3={b_3}, buvid4={b_4}")
+        except Exception as e:
+            log_manager.log("获取b_3和b_4失败", str(e))
+            print("获取 b_3 和 b_4 时发生错误：", str(e))
 
 
 def pil_image_to_qimage(img):

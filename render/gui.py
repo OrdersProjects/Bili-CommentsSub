@@ -8,7 +8,7 @@ from auth.login import on_cookie_login_clicked, on_scan_login_clicked
 from render.event.accountTable import show_context_menu, start_account_list_refresh
 from render.event.browser import select_browser_path
 from render.event.videoComment import (
-    on_clear_comments_clicked, on_collect_comments_clicked, on_export_comments_clicked,
+    on_clear_comments_clicked, on_clear_followed_comments_clicked, on_clear_sent_messages_clicked, on_collect_comments_clicked, on_export_comments_clicked,
     on_select_all_comments_clicked, on_deselect_all_comments_clicked,
     on_select_male_comments_clicked, on_select_female_comments_clicked
 )
@@ -68,6 +68,8 @@ def create_gui():
     btn_select_female_comments = QPushButton("只选女性")
     btn_clear_comments = QPushButton("清空列表")
     btn_export_comments = QPushButton("导出表格")
+    btn_clear_followed = QPushButton("清除已关注")
+    btn_clear_sent_msgs = QPushButton("清除已私信")
 
     button_grid_layout = QGridLayout()
     button_grid_layout.addWidget(btn_select_all_comments, 0, 0)
@@ -76,6 +78,8 @@ def create_gui():
     button_grid_layout.addWidget(btn_select_female_comments, 1, 1)
     button_grid_layout.addWidget(btn_clear_comments, 2, 0)
     button_grid_layout.addWidget(btn_export_comments, 2, 1)
+    button_grid_layout.addWidget(btn_clear_followed, 3, 0)
+    button_grid_layout.addWidget(btn_clear_sent_msgs, 3, 1)
 
     comment_layout.addLayout(works_layout)
     comment_layout.addLayout(fans_layout)
@@ -166,10 +170,10 @@ def create_gui():
     btn_select_browser.clicked.connect(lambda: select_browser_path(input_browser_path, window))
 
     # 扫码登录按钮的事件连接
-    btn_scan_login.clicked.connect(lambda: on_scan_login_clicked(window))
+    btn_scan_login.clicked.connect(lambda: on_scan_login_clicked(window, account_table))
 
     # cookie登录按钮的事件连接
-    btn_import_cookies.clicked.connect(lambda: on_cookie_login_clicked(window))
+    btn_import_cookies.clicked.connect(lambda: on_cookie_login_clicked(window, account_table))
 
     # 评论区开始采集按钮的事件连接
     btn_collect_comments.clicked.connect(lambda: on_collect_comments_clicked(input_works.text(), comment_table, account_table))
@@ -191,13 +195,19 @@ def create_gui():
      # 采集区只选女性按钮的事件连接
     btn_select_female_comments.clicked.connect(lambda: on_select_female_comments_clicked(comment_table))
 
+    # 清除已关注按钮的事件连接
+    btn_clear_followed.clicked.connect(lambda: on_clear_followed_comments_clicked(comment_table))
+
+    # 清除已私信按钮的事件连接
+    btn_clear_sent_msgs.clicked.connect(lambda: on_clear_sent_messages_clicked(comment_table))
+
     # 开始关注的事件连接
     btn_start_follow.clicked.connect(lambda: on_follow_account_clicked(account_table,comment_table,spin_delay.value(),spin_operations_per_account.value(),window))
     # 开始私信的事件连接
     btn_start_message.clicked.connect(lambda: on_send_msg_clicked(account_table,comment_table,text_private_message.toPlainText(),spin_delay.value(),spin_operations_per_account.value(),window))
 
     window.show()
-    sys.exit(app.exec_())
+    app.exec_()
 
 
 if __name__ == "__main__":

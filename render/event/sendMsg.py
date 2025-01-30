@@ -11,6 +11,9 @@ from utils.cookie_manager import load_cookies
 from auth.bili_ticket import get_bili_ticket
 import json
 
+from utils.log_manager import LogManager
+log_manager = LogManager()
+
 def generate_deviceid():
     deviceid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
     return ''.join(random.choice(string.hexdigits) if c == 'x' else random.choice('89ab') if c == 'y' else c for c in deviceid)
@@ -21,6 +24,8 @@ def send_msg(sender_uid, receiver_uid, cookies, message):
     deviceid = generate_deviceid()
     bili_ticket = get_bili_ticket(cookies.get("bili_jct"))
     cookie_dict = {
+        "buvid3": cookies.get("buvid3"),
+        "buvid4": cookies.get("buvid4"),
         "SESSDATA": cookies.get("SESSDATA"),
         "bili_jct": cookies.get("bili_jct"),
         "sid": cookies.get("sid"),
@@ -36,6 +41,10 @@ def send_msg(sender_uid, receiver_uid, cookies, message):
     response = requests.post(url, cookies=cookie_dict, headers=get_header(), data=payload)
     data = response.json()
     print(f"发送私信{receiver_uid}: 内容为{message}, {data['message']}, code:{data['code']}")
+    if data["code"] == 0:
+        return data["code"]
+    else:
+        log_manager.log("send_msg", response.text)
     return data["code"]  # 返回0表示成功
 
 def on_send_msg_clicked(account_table, comment_table, message, spin_delay, spin_operations_per_account, window):

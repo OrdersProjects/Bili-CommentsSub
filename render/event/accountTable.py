@@ -1,5 +1,6 @@
 # 定时刷新账号列表
 import os
+import threading
 from render.event.browser import open_browser_with_cookie
 from utils.cookie_manager import COOKIE_DIR, delete_cookie, get_all_cookies, load_cookies
 from utils.getUserInfo import get_username
@@ -43,7 +44,7 @@ def update_account_list(account_table):
 def start_account_list_refresh(account_table):
     """定时刷新账号列表"""
     print("开始刷新账号列表")
-    QTimer.singleShot(1000, lambda: update_account_list(account_table))
+    update_account_list(account_table)
 
 
 def get_selected_accounts(account_table):
