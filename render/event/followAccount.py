@@ -37,36 +37,37 @@ def on_follow_account_clicked(account_table, comment_table, spin_operations_per_
     delay_seconds = int(spin_delay)
     # 记录已经处理过的 uids
     processed_uids = set()
-    # 遍历选中的登录账号
-    for account in selected_accounts:
-        cookies = load_cookies(account)
-        follow_count = 0
+    while len(processed_uids) < len(uids):
+        # 遍历选中的登录账号
+        for account in selected_accounts:
+            cookies = load_cookies(account)
+            follow_count = 0
 
-        # 遍历剩余的 uids
-        for uid in uids:
-            if uid in processed_uids:
-                continue  # 跳过已经处理过的 uid
+            # 遍历剩余的 uids
+            for uid in uids:
+                if uid in processed_uids:
+                    continue  # 跳过已经处理过的 uid
 
-            # 执行关注操作
-            result = follow_account(uid, cookies)
-            follow_count += 1
-            processed_uids.add(uid)
+                # 执行关注操作
+                result = follow_account(uid, cookies)
+                follow_count += 1
+                processed_uids.add(uid)
 
-            # 更新关注状态
-            if result == 0:
-                set_follow_status(comment_table, uid, "已关注")
-            else:
-                set_follow_status(comment_table, uid, "关注失败")
+                # 更新关注状态
+                if result == 0:
+                    set_follow_status(comment_table, uid, "已关注")
+                else:
+                    set_follow_status(comment_table, uid, "关注失败")
 
-            # 检查是否需要切换账号
-            if follow_count >= follow_limit:
-                break  # 切换下一个账号
+                # 检查是否需要切换账号
+                if follow_count >= follow_limit:
+                    break  # 切换下一个账号
 
-            time.sleep(delay_seconds)
+                time.sleep(delay_seconds)
 
-        # 如果所有 uids 都已处理，提前退出
-        if len(processed_uids) >= len(uids):
-            break
+            # 如果所有 uids 都已处理，提前退出
+            if len(processed_uids) >= len(uids):
+                break
 
         # 更新账号执行状态
         set_execution_status(account_table, account, "已执行")

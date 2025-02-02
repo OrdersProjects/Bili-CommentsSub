@@ -70,37 +70,37 @@ def on_send_msg_clicked(account_table, comment_table, message, spin_delay, spin_
     # 记录已经处理过的 uids
     processed_uids = set()
 
-    # 遍历选中的登录账号
-    for account in selected_accounts:
-        cookies = load_cookies(account)
-        msg_count = 0
+    # 循环切换账号，直到所有 uids 都被处理
+    while len(processed_uids) < len(uids):
+        for account in selected_accounts:
+            cookies = load_cookies(account)
+            msg_count = 0
 
-        # 遍历剩余的 uids
-        for uid in uids:
-            if uid in processed_uids:
-                continue  # 跳过已经处理过的 uid
+            # 遍历剩余的 uids
+            for uid in uids:
+                if uid in processed_uids:
+                    continue  # 跳过已经处理过的 uid
 
-            # 执行私信操作
-            result = send_msg(cookies.get("DedeUserID"), uid, cookies, message)
-            msg_count += 1
-            processed_uids.add(uid)
+                # 执行私信操作
+                result = send_msg(cookies.get("DedeUserID"), uid, cookies, message)
+                msg_count += 1
+                processed_uids.add(uid)
 
-            # 更新私信状态
-            if result == 0:
-                set_message_status(comment_table, uid, "已私信")
-            else:
-                set_message_status(comment_table, uid, "私信失败")
+                # 更新私信状态
+                if result == 0:
+                    set_message_status(comment_table, uid, "已私信")
+                else:
+                    set_message_status(comment_table, uid, "私信失败")
 
-            # 检查是否需要切换账号
-            if msg_count >= msg_limit and len(selected_accounts) > 1:
-                break  # 切换下一个账号
+                # 检查是否需要切换账号
+                if msg_count >= msg_limit:
+                    break  # 切换下一个账号
 
-            time.sleep(delay_seconds)
+                time.sleep(delay_seconds)
 
-        # 如果所有 uids 都已处理，提前退出
-        if len(processed_uids) >= len(uids):
-            break
-
+            # 如果所有 uids 都已处理，提前退出
+            if len(processed_uids) >= len(uids):
+                break
         # 更新账号执行状态
         print(f"账号{account}执行完毕")
         set_execution_status(account_table, account, "已执行")

@@ -19,7 +19,7 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
         return
 
     print(f"提取到的视频 ID：{video_id}")
-    
+
     # 获取选中的账号
     selected_accounts = get_selected_accounts(account_table)
     if not selected_accounts:
@@ -28,32 +28,48 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
 
     all_comments = []
     failed_accounts = []
+    added_uids = set()  # 记录已经添加到表格中的 uid
 
     # 循环遍历选中的账号，获取评论
     for uid in selected_accounts:
         cookies = load_cookies(uid)
-        
+
         if not cookies:
             print(f"无法加载 {uid} 的 cookie")
             failed_accounts.append(uid)
-            continue
+            continue  # 切换到下一个账号
 
-        # 获取视频的评论总数
-        comment_count = get_video_comment_count(video_id, cookies)
-        if comment_count == 0:
+        try:
+            # 获取视频的评论总数
+            comment_count = get_video_comment_count(video_id, cookies)
+            if comment_count == 0:
+                print(f"{uid} 无法获取评论总数")
+                failed_accounts.append(uid)
+                continue  # 切换到下一个账号
+
+            # 根据评论总数计算总页数
+            total_pages = calculate_total_pages(comment_count)
+
+            # 获取评论数据
+            comments = get_comments(video_id, total_pages, cookies)
+            if not comments:
+                print(f"{uid} 无法获取评论数据")
+                failed_accounts.append(uid)
+                continue  # 切换到下一个账号
+
+            # 过滤已添加的 uid，避免重复
+            new_comments = []
+            for comment in comments:
+                if comment[2] not in added_uids:  # comment[2] 是 uid
+                    new_comments.append(comment)
+                    added_uids.add(comment[2])
+
+            all_comments.extend(new_comments)
+
+        except Exception as e:
+            print(f"{uid} 获取评论数据时发生异常：{e}")
             failed_accounts.append(uid)
-            continue
-
-        # 根据评论总数计算总页数
-        total_pages = calculate_total_pages(comment_count)
-
-        # 获取评论数据
-        comments = get_comments(video_id, total_pages, cookies)
-        if not comments:
-            failed_accounts.append(uid)
-            continue
-
-        all_comments.extend(comments)
+            continue  # 切换到下一个账号
 
     if failed_accounts:
         QMessageBox.warning(None, "警告", f"无法获取以下账号的评论数据：{', '.join(failed_accounts)}")
