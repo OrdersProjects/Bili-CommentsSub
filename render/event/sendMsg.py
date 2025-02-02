@@ -67,24 +67,39 @@ def on_send_msg_clicked(account_table, comment_table, message, spin_delay, spin_
     msg_limit = int(spin_operations_per_account)
     # 获取私信/关注操作间隔的数值
     delay_seconds = int(spin_delay)
-     # 遍历选中的登录账号
+    # 记录已经处理过的 uids
+    processed_uids = set()
+
+    # 遍历选中的登录账号
     for account in selected_accounts:
         cookies = load_cookies(account)
         msg_count = 0
-        # 遍历评论账号uid
+
+        # 遍历剩余的 uids
         for uid in uids:
-            # 执行关注操作
-            result = send_msg(cookies.get("DedeUserID"),uid, cookies, message)
+            if uid in processed_uids:
+                continue  # 跳过已经处理过的 uid
+
+            # 执行私信操作
+            result = send_msg(cookies.get("DedeUserID"), uid, cookies, message)
             msg_count += 1
-            # 检查是否需要切换账号
-            if msg_count >= msg_limit and len(selected_accounts) > 1:
-                break
-            time.sleep(delay_seconds)
-            # 更新关注状态
+            processed_uids.add(uid)
+
+            # 更新私信状态
             if result == 0:
                 set_message_status(comment_table, uid, "已私信")
             else:
                 set_message_status(comment_table, uid, "私信失败")
+
+            # 检查是否需要切换账号
+            if msg_count >= msg_limit and len(selected_accounts) > 1:
+                break  # 切换下一个账号
+
+            time.sleep(delay_seconds)
+
+        # 如果所有 uids 都已处理，提前退出
+        if len(processed_uids) >= len(uids):
+            break
 
         # 更新账号执行状态
         print(f"账号{account}执行完毕")
