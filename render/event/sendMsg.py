@@ -103,4 +103,5 @@ def on_send_msg_clicked(account_table, comment_table, message, spin_delay, spin_
                 break
         # 更新账号执行状态
         print(f"账号{account}执行完毕")
+        log_manager.log(f"账号{account}执行完毕")
         set_execution_status(account_table, account, "已执行")
