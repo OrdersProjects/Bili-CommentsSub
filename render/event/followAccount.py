@@ -94,7 +94,7 @@ def follow_account(fid, cookies):
     response = requests.post(url, cookies=cookie_dict, headers=get_header(), data=payload)
     data = response.json()
     print(f"关注账户{fid}: {data['message']},code:{data['code']}")
-    log_manager.log(f"关注账户{fid}", "{data['message']},code:{data['code']}")
+    log_manager.log(f"关注账户{fid}", f"{data['message']},code:{data['code']}")
     if data["code"] == 0:
         return data["code"]
     else:
