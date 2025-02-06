@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from PyQt5.QtWidgets import (
     QMessageBox
 )
@@ -16,61 +17,67 @@ from utils.log_manager import LogManager
 log_manager = LogManager()
 
 
+executor = ThreadPoolExecutor(max_workers=4)
+
 # 开始关注按钮事件
 def on_follow_account_clicked(account_table, comment_table, spin_operations_per_account, spin_delay, window):
-    """开始关注按钮事件"""
-    # 获取选中的登录账号
+    """Start following accounts without blocking the GUI"""
     selected_accounts = get_selected_accounts(account_table)
     if not selected_accounts:
         QMessageBox.warning(window, "警告", "请先选择账号！")
         return
-    # 获取选择的评论账号uid
+
+    # Get selected uids from the comment table
     uids = []
     for row in range(comment_table.rowCount()):
-        # 检查第一列的复选框是否被选中
         if comment_table.item(row, 0).checkState() == Qt.Checked:
-            # 获取第三列的UID
             uids.append(comment_table.item(row, 2).text())
-    # 获取关注次数切换的数值
+
     follow_limit = int(spin_operations_per_account)
-    # 获取私信/关注操作间隔的数值
     delay_seconds = int(spin_delay)
-    # 记录已经处理过的 uids
+
+    # Use ThreadPoolExecutor to execute the task asynchronously
+    executor.submit(follow_accounts_task, selected_accounts, uids, follow_limit, delay_seconds, account_table, comment_table, window, executor)
+
+def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, account_table, comment_table, window, executor):
+    """Task to perform the following operation in a background thread"""
     processed_uids = set()
     while len(processed_uids) < len(uids):
-        # 遍历选中的登录账号
         for account in selected_accounts:
             cookies = load_cookies(account)
             follow_count = 0
 
-            # 遍历剩余的 uids
             for uid in uids:
                 if uid in processed_uids:
-                    continue  # 跳过已经处理过的 uid
+                    continue
 
-                # 执行关注操作
+                # Perform the follow operation
                 result = follow_account(uid, cookies)
                 follow_count += 1
                 processed_uids.add(uid)
 
-                # 更新关注状态
+                # Update the follow status in the comment table
                 if result == 0:
                     set_follow_status(comment_table, uid, "已关注")
                 else:
                     set_follow_status(comment_table, uid, "关注失败")
 
-                # 检查是否需要切换账号
+                comment_table.viewport().update()
+                # Switch accounts if the follow limit is reached
                 if follow_count >= follow_limit:
-                    break  # 切换下一个账号
+                    break
 
                 time.sleep(delay_seconds)
 
-            # 如果所有 uids 都已处理，提前退出
             if len(processed_uids) >= len(uids):
                 break
 
-        # 更新账号执行状态
-        set_execution_status(account_table, account, "已执行")
+        # Update account execution status in the table
+        for account in selected_accounts:
+            set_execution_status(account_table, account, "已执行")
+
+    # Inform the user that the process is finished (optional)
+    executor.close()
 
 
 # 关注账号

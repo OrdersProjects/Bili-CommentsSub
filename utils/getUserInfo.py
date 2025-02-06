@@ -26,7 +26,7 @@ def get_username(cookies):
             return None, False  # 登录失败
     except Exception as e:
         print(f"请求错误：{e}")
-        log_manager.log_error(f"请求错误：{e}")
+        log_manager.log_error(f"请求错误",{e})
         return None, False  # 请求失败
 
 
@@ -44,5 +44,5 @@ def get_gender(uid):
             return "失败"
     except Exception as e:
         print(f"请求错误：{e}")
-        log_manager.log_error(f"请求错误：{e}")
+        log_manager.log_error(f"请求错误",{e})
         return "失败"
