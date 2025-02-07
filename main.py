@@ -1,4 +1,4 @@
-from render.gui import create_gui
+from render.authGui import authMain
 
 if __name__ == "__main__":
-    create_gui()
+    authMain()

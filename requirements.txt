@@ -1,6 +1,20 @@
+# GUI
 PyQt5
+
+# Network
 requests
+
+# QRCode
 qrcode
+
+# Image
 Pillow
-numpy
+
+# Chrome
 selenium
+
+# WinAPI
+wmi
+getmac
+numpy
+pycryptodome

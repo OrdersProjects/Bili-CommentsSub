@@ -19,7 +19,6 @@ from utils.config_manager import load_browser_path_from_config
 
 
 def create_gui():
-    app = QApplication(sys.argv)
     window = QWidget()
     window.setWindowTitle("B站评论和粉丝采集工具")
     window.setGeometry(100, 100, 1500, 700)
@@ -207,8 +206,3 @@ def create_gui():
     btn_start_message.clicked.connect(lambda: on_send_msg_clicked(account_table,comment_table,text_private_message.toPlainText(),spin_delay.value(),spin_operations_per_account.value(),window))
 
     window.show()
-    app.exec_()
-
-
-if __name__ == "__main__":
-    create_gui()
