@@ -77,7 +77,7 @@ def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, a
             set_execution_status(account_table, account, "已执行")
 
     # Inform the user that the process is finished (optional)
-    executor.close()
+    executor.shutdown(wait=False)
 
 
 # 关注账号
