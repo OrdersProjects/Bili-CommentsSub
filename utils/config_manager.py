@@ -71,3 +71,16 @@ def load_browser_path_from_config():
     """
     config = ConfigManager("config.ini")
     return config.get("Settings", "BrowserPath", "")
+
+
+def save_ttorc_apikey_to_config(apikey):
+    """将关注限制保存到 config.ini 文件。"""
+    config = ConfigManager("config.ini")
+    config.set("Settings", "TTorcApiKey", str(apikey))
+    config.save()
+
+
+def load_ttorc_apikey_from_config():
+    """从 config.ini 文件加载关注限制。"""
+    config = ConfigManager("config.ini")
+    return config.get("Settings", "TTorcApiKey", "")

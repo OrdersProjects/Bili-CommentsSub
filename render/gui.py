@@ -15,7 +15,7 @@ from render.event.videoComment import (
 from render.event.followAccount import on_follow_account_clicked
 from render.event.sendMsg import on_send_msg_clicked
 from render.event.fans import on_collect_fans_clicked
-from utils.config_manager import load_browser_path_from_config
+from utils.config_manager import load_browser_path_from_config, load_ttorc_apikey_from_config, save_ttorc_apikey_to_config
 
 
 def create_gui():
@@ -147,9 +147,18 @@ def create_gui():
     browser_path_layout.addWidget(input_browser_path)
     browser_path_layout.addWidget(btn_select_browser)
 
+    lbl_ttorc_apikey = QLabel("TTOCR Key：")
+    input_ttorc_apikey = QLineEdit()
+    btn_save_apikey = QPushButton("保存")
+    ttorc_apikey_layout = QHBoxLayout()
+    ttorc_apikey_layout.addWidget(lbl_ttorc_apikey)
+    ttorc_apikey_layout.addWidget(input_ttorc_apikey)
+    ttorc_apikey_layout.addWidget(btn_save_apikey)
+
     action_layout.addLayout(operation_buttons_layout)
     action_layout.addLayout(operation_settings_layout)
     action_layout.addLayout(browser_path_layout)
+    action_layout.addLayout(ttorc_apikey_layout)
     action_group.setLayout(action_layout)
 
     # 添加到主布局
@@ -160,13 +169,18 @@ def create_gui():
     window.setLayout(main_layout)
 
     input_browser_path.setText(load_browser_path_from_config())
+    input_ttorc_apikey.setText(load_ttorc_apikey_from_config())
 
      # 启动定时刷新账号列表
     start_account_list_refresh(account_table)
     account_table.setContextMenuPolicy(Qt.CustomContextMenu)
     account_table.customContextMenuRequested.connect(lambda position: show_context_menu(account_table, input_browser_path, position))
 
+    # 选择浏览器路径
     btn_select_browser.clicked.connect(lambda: select_browser_path(input_browser_path, window))
+
+    # 保存APIkey
+    btn_save_apikey.clicked.connect(lambda: save_ttorc_apikey_to_config(input_ttorc_apikey.text()))
 
     # 扫码登录按钮的事件连接
     btn_scan_login.clicked.connect(lambda: on_scan_login_clicked(window, account_table))
