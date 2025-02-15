@@ -4,14 +4,14 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 
 from render.event.accountTable import get_selected_accounts
-from utils.cookie_manager import load_cookies
+from managers.cookie_manager import load_cookies
 from utils.getUserInfo import get_gender
-from config import get_header
+from managers.header_manager import get_header
 from auth.bili_ticket import get_bili_ticket
 import requests
 import json
 
-from utils.log_manager import LogManager
+from managers.log_manager import LogManager
 log_manager = LogManager()
 
 def on_collect_fans_clicked(input_uid, comment_table, account_table):
@@ -50,7 +50,7 @@ def on_collect_fans_clicked(input_uid, comment_table, account_table):
         }
         while True:
             try:
-                response = requests.get(url, params=params, cookies=cookie_dict, headers=get_header())
+                response = requests.get(url, params=params, cookies=cookie_dict, headers=get_header(True))
                 response.raise_for_status()  # 检查请求是否成功
                 data = response.json()  # 尝试解析JSON
                 if data["code"] == 0:

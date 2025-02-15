@@ -2,16 +2,16 @@ import random
 import string
 import requests
 import time
-from config import get_header
+from managers.header_manager import get_header
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import Qt
 from render.event.accountTable import get_selected_accounts, set_execution_status
 from render.event.commentTable import set_message_status
-from utils.cookie_manager import load_cookies
+from managers.cookie_manager import load_cookies
 from auth.bili_ticket import get_bili_ticket
 import json
 
-from utils.log_manager import LogManager
+from managers.log_manager import LogManager
 log_manager = LogManager()
 
 def generate_deviceid():

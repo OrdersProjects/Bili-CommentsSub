@@ -15,7 +15,7 @@ from render.event.videoComment import (
 from render.event.followAccount import on_follow_account_clicked
 from render.event.sendMsg import on_send_msg_clicked
 from render.event.fans import on_collect_fans_clicked
-from utils.config_manager import load_browser_path_from_config, load_ttorc_apikey_from_config, save_ttorc_apikey_to_config
+from managers.config_manager import load_browser_path_from_config, load_ttorc_apikey_from_config, save_ttorc_apikey_to_config
 
 
 def create_gui():

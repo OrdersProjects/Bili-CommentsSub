@@ -5,8 +5,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium.webdriver.common.by import By
-from utils.config_manager import save_browser_path_to_config
-from utils.cookie_manager import load_cookies
+from managers.config_manager import save_browser_path_to_config
+from managers.cookie_manager import load_cookies
 
 def open_browser_with_cookie(browser_path, uid):
     """

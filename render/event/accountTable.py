@@ -2,7 +2,7 @@
 import os
 import threading
 from render.event.browser import open_browser_with_cookie
-from utils.cookie_manager import COOKIE_DIR, delete_cookie, get_all_cookies, load_cookies
+from managers.cookie_manager import COOKIE_DIR, delete_cookie, get_all_cookies, load_cookies
 from utils.getUserInfo import get_username
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QTableWidgetItem

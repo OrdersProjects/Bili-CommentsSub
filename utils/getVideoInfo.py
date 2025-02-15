@@ -1,8 +1,8 @@
 import re
 import requests
 
-from config import get_header
-from utils.log_manager import LogManager
+from managers.header_manager import get_header
+from managers.log_manager import LogManager
 log_manager = LogManager()
 
 def get_comments(video_id, page, cookies):

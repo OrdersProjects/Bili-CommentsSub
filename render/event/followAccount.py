@@ -6,14 +6,14 @@ from PyQt5.QtCore import Qt
 from render.event.accountTable import (
     get_selected_accounts, set_execution_status
 )
-from utils.cookie_manager import load_cookies
+from managers.cookie_manager import load_cookies
 from render.event.commentTable import set_follow_status
-from config import get_header
+from managers.header_manager import get_header
 from auth.bili_ticket import get_bili_ticket
 import requests
 import time
 
-from utils.log_manager import LogManager
+from managers.log_manager import LogManager
 log_manager = LogManager()
 
 

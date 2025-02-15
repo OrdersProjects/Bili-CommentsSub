@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtGui import QImage
 import numpy as np
-from config import get_header
-from utils.log_manager import LogManager
+from managers.header_manager import get_header
+from managers.log_manager import LogManager
 
 log_manager = LogManager()
 

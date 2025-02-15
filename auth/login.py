@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QLabel, QMessageBox
 from auth.cookie_login import CookieLoginDialog
 from render.event.accountTable import start_account_list_refresh
-from utils.cookie_manager import check_cookie_exists, save_cookies
+from managers.cookie_manager import check_cookie_exists, save_cookies
 from auth.qrcode_login import QrCodeLoginThread, get_qr_code, show_qr_code_dialog
 
 

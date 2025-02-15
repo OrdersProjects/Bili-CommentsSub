@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 
 from render.event.accountTable import get_selected_accounts
-from utils.cookie_manager import load_cookies
+from managers.cookie_manager import load_cookies
 from utils.getVideoInfo import calculate_total_pages, extract_video_id, get_comments, get_video_comment_count
 
 
