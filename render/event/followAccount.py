@@ -14,6 +14,7 @@ import requests
 import time
 
 from managers.log_manager import LogManager
+from utils.fuck_v_voucher import get_gaia_vtoken
 log_manager = LogManager()
 
 
@@ -59,6 +60,15 @@ def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, a
                 # Update the follow status in the comment table
                 if result == 0:
                     set_follow_status(comment_table, uid, "已关注")
+                elif result["code"] == -352:
+                    v_voucher = result["data"]["v_voucher"]
+                    gaia_token = get_gaia_vtoken(v_voucher,cookies.get("bili_jct"),"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D")
+                    result = follow_account(uid, cookies,gaia_token,if_captcha=True)
+                    #set_follow_status(comment_table, uid, "已关注")
+                    if result == 0:
+                        set_follow_status(comment_table, uid, "已关注")
+                    else:
+                        set_follow_status(comment_table, uid, "风控流程验证失败，尝试重复关注失败")
                 else:
                     set_follow_status(comment_table, uid, "关注失败")
 
@@ -81,21 +91,37 @@ def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, a
 
 
 # 关注账号
-#传入cookies和被关注用户ID
-def follow_account(fid, cookies):
+#传入cookies和被关注用户ID    gaia_vtoken
+def follow_account(fid, cookies,gaia_token,if_captcha=False):
     """关注账号"""
-    url = f"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D"
+    if if_captcha == False:
+        url = f"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D"
+    else:
+        url = f"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D&gaia_vtoken={gaia_token}"
     bili_ticket = get_bili_ticket(cookies.get("bili_jct"))
-    cookie_dict = {
-        "buvid3": cookies.get("buvid3"),
-        "buvid4": cookies.get("buvid4"),
-        "SESSDATA": cookies.get("SESSDATA"),
-        "bili_jct": cookies.get("bili_jct"),  # CSRF Token即为bili_jct
-        "sid": cookies.get("sid"),
-        "DedeUserID": cookies.get("DedeUserID"),
-        "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
-        "bili_ticket": bili_ticket
-    }
+    if if_captcha == False:
+        cookie_dict = {
+            "buvid3": cookies.get("buvid3"),
+            "buvid4": cookies.get("buvid4"),
+            "SESSDATA": cookies.get("SESSDATA"),
+            "bili_jct": cookies.get("bili_jct"),  # CSRF Token即为bili_jct
+            "sid": cookies.get("sid"),
+            "DedeUserID": cookies.get("DedeUserID"),
+            "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
+            "bili_ticket": bili_ticket
+        }
+    else:
+        cookie_dict = {
+            "buvid3": cookies.get("buvid3"),
+            "buvid4": cookies.get("buvid4"),
+            "SESSDATA": cookies.get("SESSDATA"),
+            "bili_jct": cookies.get("bili_jct"),  # CSRF Token即为bili_jct
+            "sid": cookies.get("sid"),
+            "DedeUserID": cookies.get("DedeUserID"),
+            "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
+            "bili_ticket": bili_ticket,
+            "x-bili-gaia-vtoken": gaia_token,
+        }
     # post参数
     payload = f"csrf={cookies.get('bili_jct')}&act=1&re_src=14&fid={fid}"
     response = requests.post(url, cookies=cookie_dict, headers=get_header(), data=payload)
@@ -106,4 +132,4 @@ def follow_account(fid, cookies):
         return data["code"]
     else:
         log_manager.log("follow_account", response.text)
-    return data["code"]  # 0为成功
+        return data # 0为成功

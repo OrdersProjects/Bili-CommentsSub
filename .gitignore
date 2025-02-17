@@ -5,6 +5,7 @@ __pycache__/
 build/
 dist/
 key
+ENV_DIR/
 
 *.csv
 *.pyc

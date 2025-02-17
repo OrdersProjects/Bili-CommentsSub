@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QMessageBox, QFileDialog
 )
 from PyQt5.QtCore import Qt
-
+from PyQt5.QtWidgets import QTableWidget
 from render.event.accountTable import get_selected_accounts
 from managers.cookie_manager import load_cookies
 from utils.getVideoInfo import calculate_total_pages, extract_video_id, get_comments, get_video_comment_count
@@ -29,6 +29,7 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
     all_comments = []
     failed_accounts = []
     added_uids = set()  # 记录已经添加到表格中的 uid
+    success = False  # 标志位，表示是否成功获取评论数据
 
     # 循环遍历选中的账号，获取评论
     for uid in selected_accounts:
@@ -63,15 +64,18 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
                 if comment[2] not in added_uids:  # comment[2] 是 uid
                     new_comments.append(comment)
                     added_uids.add(comment[2])
-
+            # 更新 UI，避免卡顿
+            #QApplication.processEvents()
             all_comments.extend(new_comments)
+            success = True  # 成功获取评论数据
+            break  # 跳出循环
 
         except Exception as e:
             print(f"{uid} 获取评论数据时发生异常：{e}")
             failed_accounts.append(uid)
             continue  # 切换到下一个账号
 
-    if failed_accounts:
+    if failed_accounts and not success:
         QMessageBox.warning(None, "警告", f"无法获取以下账号的评论数据：{', '.join(failed_accounts)}")
 
     # 更新表格

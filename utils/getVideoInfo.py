@@ -24,7 +24,7 @@ def get_comments(video_id, page, cookies):
         oid = video_id
 
         # 调用评论区 API 获取当前页评论数据
-        url = f"https://api.bilibili.com/x/v2/reply?oid={oid}&type=1&ps=20&pn={page}&sort=0"
+        url = f"https://api.bilibili.com/x/v2/reply?oid={oid}&type=1&ps=20&pn={page}&sort=0&nohot=1"
         response = requests.get(url, cookies=cookie_dict, headers=get_header())
         data = response.json()
 
