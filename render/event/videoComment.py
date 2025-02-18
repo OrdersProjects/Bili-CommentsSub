@@ -185,3 +185,17 @@ def on_clear_sent_messages_clicked(comment_table):
     # 删除记录的行，从最后一行开始删除，避免删除时改变了行的索引
     for row in reversed(rows_to_remove):
         comment_table.removeRow(row)
+
+
+def on_clear_sex_female_clicked(comment_table):
+    """清除女性评论区数据"""
+    rows_to_remove = []
+    
+    for row in range(comment_table.rowCount()):
+        sex_item = comment_table.item(row, 3)  # 获取性别（第三列）
+        if sex_item and sex_item.text() == "女":
+            rows_to_remove.append(row)  # 记录要删除的行
+
+    # 删除记录的行，从最后一行开始删除，避免删除时改变了行的索引
+    for row in reversed(rows_to_remove):
+        comment_table.removeRow(row)
