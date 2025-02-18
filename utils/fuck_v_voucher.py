@@ -6,12 +6,15 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QMessageBox, QFileDialog
 )
 from managers.log_manager import LogManager
+from twocaptcha import TwoCaptcha
+
 log_manager = LogManager()
 def get_gaia_vtoken(v_voucher,bili_jct,referer):
     #读取config.ini文件的ttorcapikey
     config = configparser.ConfigParser()
     config.read("config.ini")
     ttorc_apikey = config.get("ttorc", "ttorcapikey")
+    solver = TwoCaptcha(ttorc_apikey)
     captcha = get_captha(v_voucher,bili_jct,referer)
     geetest = captcha["geetest"]
     token = captcha["token"]
@@ -25,23 +28,26 @@ def get_gaia_vtoken(v_voucher,bili_jct,referer):
     else:
         gt = geetest["gt"]
         challenge = geetest["challenge"]
-    #需要验证码
-    QMessageBox.warning(None, "警告", "验证码错误")
-    api = "http://api.ttocr.com/api/recognize"
-    #请求API，Post
-    data = f"gt={gt}&challenge={challenge}&appkey={ttorc_apikey}&itemid=33&referer={referer}"
-    response = requests.post(api, data=data)
-    response_json = json.loads(response.text)
-    if response_json["code"] == 1:
-        resultid = response_json["resultid"]
-    else:
-        log_manager.log("get_gaia_vtoken", response.text)
-        QMessageBox.warning(None, "警告", "TTOCR验证码识别失败")
-        return
-    result = get_ttorc_result(resultid,ttorc_apikey)
-    challenge = result["challenge"]
-    validate = result["validate"]
-    seccode = result["seccode"]
+    # api = "http://api.ttocr.com/api/recognize"
+    # #请求API，Post
+    # data = f"gt={gt}&challenge={challenge}&appkey={ttorc_apikey}&itemid=33&referer={referer}"
+    # response = requests.post(api, data=data)
+    # response_json = json.loads(response.text)
+    # if response_json["code"] == 1:
+    #     resultid = response_json["resultid"]
+    # else:
+    #     log_manager.log("get_gaia_vtoken", response.text)
+    #     QMessageBox.warning(None, "警告", "TTOCR验证码识别失败")
+    #     return
+    # result = get_ttorc_result(resultid,ttorc_apikey)
+    # challenge = result["challenge"]
+    # validate = result["validate"]
+    # seccode = result["seccode"]
+    result = solver.geetest(gt=gt,
+                challenge=challenge,
+                url=referer)
+    validate = result['solution']["validate"]
+    seccode = result['solution']["seccode"]
     #获取grisk_id
     api_grisk = "https://api.bilibili.com/x/gaia-vgate/v1/validate"
     data = {

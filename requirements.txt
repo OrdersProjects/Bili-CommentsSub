@@ -13,6 +13,9 @@ Pillow
 # Chrome
 selenium
 
+#captcha
+2captcha-python
+
 # WinAPI
 wmi
 getmac

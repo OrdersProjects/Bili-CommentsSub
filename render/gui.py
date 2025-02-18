@@ -147,7 +147,7 @@ def create_gui():
     browser_path_layout.addWidget(input_browser_path)
     browser_path_layout.addWidget(btn_select_browser)
 
-    lbl_ttorc_apikey = QLabel("TTOCR Key：")
+    lbl_ttorc_apikey = QLabel("API Key：")
     input_ttorc_apikey = QLineEdit()
     btn_save_apikey = QPushButton("保存")
     ttorc_apikey_layout = QHBoxLayout()
