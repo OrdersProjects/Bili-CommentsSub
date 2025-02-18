@@ -79,12 +79,11 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
         QMessageBox.warning(None, "警告", f"无法获取以下账号的评论数据：{', '.join(failed_accounts)}")
 
     # 更新表格
-    #comment_table.setRowCount(len(all_comments))
-    comment_table = QTableWidget()
-    checkbox_item = QTableWidgetItem()
-    checkbox_item.setCheckState(Qt.Unchecked)  # 默认不选中
+    comment_table.setRowCount(len(all_comments))
     for row, (index, uname, uid, sex) in enumerate(all_comments):
         # 创建复选框并添加到表格的第一列
+        checkbox_item = QTableWidgetItem()
+        checkbox_item.setCheckState(Qt.Unchecked)  # 默认不选中
         comment_table.setItem(row, 0, checkbox_item)  # 第 0 列为复选框
         comment_table.setItem(row, 1, QTableWidgetItem(uname))  # 昵称
         comment_table.setItem(row, 2, QTableWidgetItem(uid))  # UID
