@@ -70,6 +70,8 @@ def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, a
                         set_follow_status(comment_table, uid, "已关注")
                     else:
                         set_follow_status(comment_table, uid, "风控流程验证失败，尝试重复关注失败")
+                elif result["code"] == 22014:
+                    set_follow_status(comment_table, uid, "已关注")
                 else:
                     set_follow_status(comment_table, uid, "关注失败")
 
