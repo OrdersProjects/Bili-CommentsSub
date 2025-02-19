@@ -92,7 +92,7 @@ def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, a
 
 # 关注账号
 #传入cookies和被关注用户ID    gaia_vtoken
-def follow_account(fid, cookies,gaia_token,if_captcha=False):
+def follow_account(fid, cookies,gaia_token=None,if_captcha=False):
     """关注账号"""
     if if_captcha == False:
         url = f"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D"
