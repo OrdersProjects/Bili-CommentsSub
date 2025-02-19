@@ -18,11 +18,12 @@ from utils.fuck_v_voucher import get_gaia_vtoken
 log_manager = LogManager()
 
 
-executor = ThreadPoolExecutor(max_workers=4)
+global executor
 
 # 开始关注按钮事件
 def on_follow_account_clicked(account_table, comment_table, spin_operations_per_account, spin_delay, window):
     """Start following accounts without blocking the GUI"""
+    executor = ThreadPoolExecutor(max_workers=4)
     selected_accounts = get_selected_accounts(account_table)
     if not selected_accounts:
         QMessageBox.warning(window, "警告", "请先选择账号！")
