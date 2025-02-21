@@ -220,7 +220,7 @@ def create_gui():
     btn_clear_sex_female.clicked.connect(lambda: on_clear_sex_female_clicked(comment_table))
 
     # 开始关注的事件连接
-    btn_start_follow.clicked.connect(lambda: on_follow_account_clicked(account_table,comment_table,spin_delay.value(),spin_operations_per_account.value(),window))
+    btn_start_follow.clicked.connect(lambda: on_follow_account_clicked(account_table,comment_table,spin_delay.value(),spin_operations_per_account.value(),btn_start_follow, window))
     # 开始私信的事件连接
     btn_start_message.clicked.connect(lambda: on_send_msg_clicked(account_table,comment_table,text_private_message.toPlainText(),spin_delay.value(),spin_operations_per_account.value(),window))
 

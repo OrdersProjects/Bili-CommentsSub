@@ -19,7 +19,13 @@ from utils.fuck_v_voucher import get_gaia_vtoken
 log_manager = LogManager()
 
 class FollowAccountManager:
-    executor = ThreadPoolExecutor(max_workers=4)
+    is_running = False
+    executor = None
+
+    @staticmethod
+    def create_executor():
+        """创建一个新的ThreadPoolExecutor实例"""
+        FollowAccountManager.executor = ThreadPoolExecutor(max_workers=4)
 
     @staticmethod
     def create_cookie_dict(cookies, bili_ticket, gaia_token=None):
@@ -61,15 +67,29 @@ class FollowAccountManager:
 
 
 # 开始关注按钮事件
-def on_follow_account_clicked(account_table, comment_table, spin_operations_per_account, spin_delay, window):
+def on_follow_account_clicked(account_table, comment_table, spin_operations_per_account, spin_delay, btn, window):
     """Start following accounts without blocking the GUI"""
-    executor = ThreadPoolExecutor(max_workers=4)
+    
+    # 如果线程已经在运行，则停止线程并修改按钮文本
+    if FollowAccountManager.is_running:
+        FollowAccountManager.executor.shutdown(wait=False)  # 关闭线程池，所有未完成的任务将被取消
+        FollowAccountManager.is_running = False
+        btn.setText("开始关注")  # 恢复按钮文本为"开始关注"
+        return
+    
+    # 否则，开始关注流程
+    FollowAccountManager.is_running = True
+    FollowAccountManager.create_executor()
+    btn.setText("停止关注")  # 改变按钮文本为"停止关注"
+    
     selected_accounts = get_selected_accounts(account_table)
     if not selected_accounts:
         QMessageBox.warning(window, "警告", "请先选择账号！")
+        FollowAccountManager.is_running = False
+        btn.setText("开始关注")
         return
 
-    # Get selected uids from the comment table
+    # 获取选中的uids
     uids = []
     for row in range(comment_table.rowCount()):
         if comment_table.item(row, 0).checkState() == Qt.Checked:
@@ -78,10 +98,10 @@ def on_follow_account_clicked(account_table, comment_table, spin_operations_per_
     follow_limit = int(spin_operations_per_account)
     delay_seconds = int(spin_delay)
 
-    # Use ThreadPoolExecutor to execute the task asynchronously
-    executor.submit(follow_accounts_task, selected_accounts, uids, follow_limit, delay_seconds, account_table, comment_table, window, executor)
+    # 使用ThreadPoolExecutor执行任务
+    FollowAccountManager.executor.submit(follow_accounts_task, selected_accounts, uids, follow_limit, delay_seconds, account_table, comment_table, btn)
 
-def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, account_table, comment_table, window, executor):
+def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, account_table, comment_table, btn):
     """Task to perform the following operation in a background thread"""
     processed_uids = set()
     try:
@@ -96,6 +116,9 @@ def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, a
                 for uid in uids:
                     if uid in processed_uids:
                         continue
+
+                    if FollowAccountManager.is_running is False:
+                        break
 
                     try:
                         result = follow_account(uid, cookies)
@@ -119,10 +142,12 @@ def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, a
             # 批量更新账号状态
             for account in selected_accounts:
                 set_execution_status(account_table, account, "已执行")
-
+                
     finally:
         # 仅在需要时更新UI
         comment_table.viewport().update()
+        FollowAccountManager.is_running = False  # 完成任务后重置状态
+        btn.setText("开始关注")  # 恢复按钮文本为"开始关注"
 
 
 # 关注账号
