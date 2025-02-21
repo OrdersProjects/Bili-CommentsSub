@@ -1,5 +1,7 @@
 import os
 import configparser
+from managers import log_manager
+log_manager = log_manager.LogManager()
 
 class ConfigManager:
     """
@@ -18,6 +20,8 @@ class ConfigManager:
             self.config.read(self.config_file)
         else:
             print(f"配置文件 {self.config_file} 不存在，将在需要时创建新的配置文件。")
+            log_manager.log("__init__", f"配置文件 {self.config_file} 不存在，将在需要时创建新的配置文件。")
+
 
     def get(self, section, key, default_value=None):
         """
@@ -54,6 +58,7 @@ class ConfigManager:
         with open(self.config_file, "w") as config_file:
             self.config.write(config_file)
         print(f"配置已保存到 {self.config_file}")
+        log_manager.log("save", f"配置已保存到 {self.config_file}")
 
 
 def save_browser_path_to_config(browser_path):

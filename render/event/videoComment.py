@@ -8,7 +8,8 @@ from PyQt5.QtWidgets import QTableWidget
 from render.event.accountTable import get_selected_accounts
 from managers.cookie_manager import load_cookies
 from utils.getVideoInfo import calculate_total_pages, extract_video_id, get_comments, get_video_comment_count
-
+from managers.log_manager import LogManager
+log_manager = LogManager()
 
 def on_collect_comments_clicked(input_url, comment_table, account_table):
     """采集按钮点击事件"""
@@ -16,6 +17,7 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
 
     if not video_id:
         print("无法提取视频 ID，请检查链接格式")
+        QMessageBox.warning(None, "警告", "无法提取视频 ID，请检查链接格式")
         return
 
     print(f"提取到的视频 ID：{video_id}")
@@ -37,6 +39,7 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
 
         if not cookies:
             print(f"无法加载 {uid} 的 cookie")
+            log_manager.log_error(f"无法加载 {uid} 的 cookie", e)
             failed_accounts.append(uid)
             continue  # 切换到下一个账号
 
@@ -45,6 +48,7 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
             comment_count = get_video_comment_count(video_id, cookies)
             if comment_count == 0:
                 print(f"{uid} 无法获取评论总数")
+                log_manager.log_error(f"{uid} 无法获取评论总数", e)
                 failed_accounts.append(uid)
                 continue  # 切换到下一个账号
 
@@ -55,6 +59,7 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
             comments = get_comments(video_id, total_pages, cookies)
             if not comments:
                 print(f"{uid} 无法获取评论数据")
+                log_manager.log_error(f"{uid} 无法获取评论数据", e)
                 failed_accounts.append(uid)
                 continue  # 切换到下一个账号
 
@@ -72,6 +77,7 @@ def on_collect_comments_clicked(input_url, comment_table, account_table):
 
         except Exception as e:
             print(f"{uid} 获取评论数据时发生异常：{e}")
+            log_manager.log_error(f"{uid} 获取评论数据时发生异常", e)
             failed_accounts.append(uid)
             continue  # 切换到下一个账号
 

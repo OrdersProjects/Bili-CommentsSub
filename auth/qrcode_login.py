@@ -21,8 +21,10 @@ def get_qr_code():
         else:
             log_manager.log("get_qr_code", response.text)
         print("二维码生成失败：", response.text)
+        log_manager.log("get_qr_code", "二维码生成失败")    
     except Exception as e:
         print("获取二维码时发生错误：", str(e))
+        log_manager.log_error("get_qr_code", str(e))
     return None, None
 
 
@@ -91,10 +93,11 @@ class QrCodeLoginThread(QThread):
                         cookies.set('buvid4', b_4)
 
                     print(f"添加到Cookies: buvid3={b_3}, buvid4={b_4}")
+                    log_manager.log("获取b_3和b_4成功", f"b_3={b_3}, b_4={b_4}")    
         except Exception as e:
             log_manager.log("获取b_3和b_4失败", str(e))
             print("获取 b_3 和 b_4 时发生错误：", str(e))
-
+            log_manager.log_error("获取b_3和b_4失败", str(e))
 
 def pil_image_to_qimage(img):
     """将PIL Image转换为QImage"""
@@ -112,8 +115,10 @@ def show_qr_code_dialog(window, url, status_label):
     img = qr.make_image()
     if img:
         print("二维码生成成功")
+        log_manager.log("show_qr_code_dialog", "二维码生成成功")
     else:
         print("二维码生成失败")
+        log_manager.log("show_qr_code_dialog", "二维码生成失败")
 
     qim = pil_image_to_qimage(img)
     pixmap = QPixmap.fromImage(qim)

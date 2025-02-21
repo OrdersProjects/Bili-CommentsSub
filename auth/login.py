@@ -3,11 +3,14 @@ from auth.cookie_login import CookieLoginDialog
 from render.event.accountTable import start_account_list_refresh
 from managers.cookie_manager import check_cookie_exists, save_cookies
 from auth.qrcode_login import QrCodeLoginThread, get_qr_code, show_qr_code_dialog
+from managers.log_manager import LogManager
+log_manager = LogManager()
 
 
 def handle_login_success(cookies, dialog, window, account_table):
     """处理登录成功后的操作"""
     print("登录成功, cookie:" + str(cookies))  # 打印 cookies 字典
+    log_manager.log("handle_login_success", cookies)
 
     dede_user_id = cookies.get('DedeUserID')
     if check_cookie_exists(dede_user_id):
@@ -20,6 +23,7 @@ def handle_login_success(cookies, dialog, window, account_table):
             QMessageBox.information(window, "登录成功", f"登录成功 | UID:{dede_user_id}")
         else:
             print("用户取消了覆盖操作")
+            LogManager.log("handle_login_success", "用户取消了覆盖操作")
     else:
         save_cookies(cookies, dede_user_id)
         QMessageBox.information(window, "登录成功", f"登录成功 | UID:{dede_user_id}")
@@ -33,6 +37,7 @@ def on_scan_login_clicked(window, account_table):
     url, qrcode_key = get_qr_code()
     if url and qrcode_key:
         print("二维码获取成功")  # 打印日志
+        log_manager.log("on_scan_login_clicked", "二维码获取成功")
         status_label = QLabel("扫码登录状态：")
         dialog = show_qr_code_dialog(window, url, status_label)
 
@@ -46,6 +51,7 @@ def on_scan_login_clicked(window, account_table):
     else:
         QMessageBox.warning(window, "二维码获取失败", "获取二维码失败，请重试")
         print("二维码获取失败")  # 打印日志
+        log_manager.log("on_scan_login_clicked", "二维码获取失败")
 
 
 def on_cookie_login_clicked(window, account_table):

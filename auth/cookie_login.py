@@ -48,6 +48,7 @@ def validate_cookies(cookies):
             return False  # 无效
     except Exception as e:
         print(f"验证 cookies 时出错：{e}")
+        log_manager.log_error(f"验证 cookies 时出错",{e})
         return False  # 无效
 
 

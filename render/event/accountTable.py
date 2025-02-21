@@ -10,12 +10,16 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QMenu, QTableWidgetItem
 )
+from managers import log_manager
+log_manager = log_manager.LogManager()
 def update_account_list(account_table):
     """更新账号列表"""
     # 获取所有 cookie 文件（即 UID）
     print("读取Cookie列表")
+    log_manager.log("update_account_list", "读取Cookie列表")
     all_cookies = get_all_cookies()
     print(all_cookies)
+    log_manager.log("update_account_list", all_cookies)
     
     account_table.setRowCount(len(all_cookies))  # 设置表格行数
 
@@ -44,6 +48,7 @@ def update_account_list(account_table):
 def start_account_list_refresh(account_table):
     """定时刷新账号列表"""
     print("开始刷新账号列表")
+    log_manager.log("start_account_list_refresh", "开始刷新账号列表")
     update_account_list(account_table)
 
 

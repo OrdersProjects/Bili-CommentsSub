@@ -18,7 +18,47 @@ from utils.fuck_v_voucher import get_gaia_vtoken
 log_manager = LogManager()
 
 
-global executor
+class FollowAccountManager:
+    executor = ThreadPoolExecutor(max_workers=4)
+
+    @staticmethod
+    def create_cookie_dict(cookies, bili_ticket, gaia_token=None):
+        """创建统一的cookie字典"""
+        base_cookies = {
+            "buvid3": cookies.get("buvid3"),
+            "buvid4": cookies.get("buvid4"),
+            "SESSDATA": cookies.get("SESSDATA"),
+            "bili_jct": cookies.get("bili_jct"),
+            "sid": cookies.get("sid"),
+            "DedeUserID": cookies.get("DedeUserID"),
+            "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
+            "bili_ticket": bili_ticket
+        }
+        if gaia_token:
+            base_cookies["x-bili-gaia-vtoken"] = gaia_token
+        return base_cookies
+
+    @staticmethod
+    def handle_follow_result(result, comment_table, uid, cookies):
+        """处理关注结果"""
+        if result == 0:
+            set_follow_status(comment_table, uid, "已关注")
+        elif isinstance(result, dict):
+            if result.get("code") == -352:
+                v_voucher = result["data"]["v_voucher"]
+                gaia_token = get_gaia_vtoken(v_voucher, cookies.get("bili_jct"), 
+                    "https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D")
+                result = follow_account(uid, cookies, gaia_token, if_captcha=True)
+                if result == 0:
+                    set_follow_status(comment_table, uid, "已关注")
+                else:
+                    set_follow_status(comment_table, uid, "风控流程验证失败，尝试重复关注失败")
+            elif result.get("code") == 22014:
+                set_follow_status(comment_table, uid, "已关注")
+            else:
+                set_follow_status(comment_table, uid, "关注失败")
+        return True
+
 
 # 开始关注按钮事件
 def on_follow_account_clicked(account_table, comment_table, spin_operations_per_account, spin_delay, window):
@@ -44,53 +84,45 @@ def on_follow_account_clicked(account_table, comment_table, spin_operations_per_
 def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, account_table, comment_table, window, executor):
     """Task to perform the following operation in a background thread"""
     processed_uids = set()
-    while len(processed_uids) < len(uids):
-        for account in selected_accounts:
-            cookies = load_cookies(account)
-            follow_count = 0
-
-            for uid in uids:
-                if uid in processed_uids:
+    try:
+        while len(processed_uids) < len(uids):
+            for account in selected_accounts:
+                cookies = load_cookies(account)
+                if not cookies:
                     continue
+                
+                follow_count = 0
 
-                # Perform the follow operation
-                result = follow_account(uid, cookies)
-                follow_count += 1
-                processed_uids.add(uid)
+                for uid in uids:
+                    if uid in processed_uids:
+                        continue
 
-                # Update the follow status in the comment table
-                if result == 0:
-                    set_follow_status(comment_table, uid, "已关注")
-                elif result["code"] == -352:
-                    v_voucher = result["data"]["v_voucher"]
-                    gaia_token = get_gaia_vtoken(v_voucher,cookies.get("bili_jct"),"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D")
-                    result = follow_account(uid, cookies,gaia_token,if_captcha=True)
-                    #set_follow_status(comment_table, uid, "已关注")
-                    if result == 0:
-                        set_follow_status(comment_table, uid, "已关注")
-                    else:
-                        set_follow_status(comment_table, uid, "风控流程验证失败，尝试重复关注失败")
-                elif result["code"] == 22014:
-                    set_follow_status(comment_table, uid, "已关注")
-                else:
-                    set_follow_status(comment_table, uid, "关注失败")
+                    try:
+                        result = follow_account(uid, cookies)
+                        follow_count += 1
+                        processed_uids.add(uid)
+                        
+                        FollowAccountManager.handle_follow_result(result, comment_table, uid, cookies)
+                        
+                        if follow_count >= follow_limit:
+                            break
 
-                comment_table.viewport().update()
-                # Switch accounts if the follow limit is reached
-                if follow_count >= follow_limit:
+                        time.sleep(delay_seconds)
+
+                    except Exception as e:
+                        log_manager.log("follow_accounts_task", f"Error processing uid {uid}: {str(e)}")
+                        set_follow_status(comment_table, uid, "处理异常")
+
+                if len(processed_uids) >= len(uids):
                     break
 
-                time.sleep(delay_seconds)
+            # 批量更新账号状态
+            for account in selected_accounts:
+                set_execution_status(account_table, account, "已执行")
 
-            if len(processed_uids) >= len(uids):
-                break
-
-        # Update account execution status in the table
-        for account in selected_accounts:
-            set_execution_status(account_table, account, "已执行")
-
-    # Inform the user that the process is finished (optional)
-    executor.shutdown(wait=False)
+    finally:
+        # 仅在需要时更新UI
+        comment_table.viewport().update()
 
 
 # 关注账号
