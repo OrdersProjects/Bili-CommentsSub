@@ -128,6 +128,8 @@ def on_export_comments_clicked(comment_table):
         with open(filename, mode='w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             writer.writerows(rows)  # 写入表格数据
+        #关闭文件
+        file.close()
 
 #取消全选按钮点击事件
 def on_deselect_all_comments_clicked(comment_table):

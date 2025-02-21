@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from PyQt5.QtWidgets import (
     QMessageBox
 )
+from PyQt5.QtCore import QMetaType
 from PyQt5.QtCore import Qt
 from render.event.accountTable import (
     get_selected_accounts, set_execution_status
@@ -16,7 +17,6 @@ import time
 from managers.log_manager import LogManager
 from utils.fuck_v_voucher import get_gaia_vtoken
 log_manager = LogManager()
-
 
 class FollowAccountManager:
     executor = ThreadPoolExecutor(max_workers=4)
@@ -108,7 +108,7 @@ def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, a
                             break
 
                         time.sleep(delay_seconds)
-
+                        comment_table.viewport().update()
                     except Exception as e:
                         log_manager.log("follow_accounts_task", f"Error processing uid {uid}: {str(e)}")
                         set_follow_status(comment_table, uid, "处理异常")
