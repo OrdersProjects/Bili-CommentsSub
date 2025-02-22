@@ -43,9 +43,26 @@ def get_gaia_vtoken(v_voucher,bili_jct,referer):
     # challenge = result["challenge"]
     # validate = result["validate"]
     # seccode = result["seccode"]
-    result = solver.geetest(gt=gt,
+    try:
+        result = solver.geetest(gt=gt,
                 challenge=challenge,
                 url=referer)
+    except TwoCaptcha.ValidationException as e:
+    # invalid parameters passed
+        print(e)
+        log_manager.log("get_gaia_vtoken", e)
+    except TwoCaptcha.NetworkException as e:
+  # network error occurred
+        print(e)
+        log_manager.log("get_gaia_vtoken", e)
+    except TwoCaptcha.ApiException as e:
+    # api respond with error
+        print(e)
+        log_manager.log("get_gaia_vtoken", e)
+    except TwoCaptcha.TimeoutException as e:
+    # captcha is not solved so far
+        print(e)
+        log_manager.log("get_gaia_vtoken", e)
     validate = result['solution']["validate"]
     seccode = result['solution']["seccode"]
     #获取grisk_id
@@ -58,12 +75,8 @@ def get_gaia_vtoken(v_voucher,bili_jct,referer):
     }
     response = requests.post(api_grisk, data=data,headers=get_header())
     response_json = json.loads(response.text)
-    if response_json["code"] == 0:
-        data = response_json["data"]
-        grisk_id = data["grisk_id"]
-        return grisk_id
-    else:
-        return response_json["code"]
+    log_manager.log("get_gaia_vtoken", response.text)
+    return response_json
     
 #根据v_voucher获取captha
 def get_captha(v_voucher,bili_jct):
@@ -74,6 +87,7 @@ def get_captha(v_voucher,bili_jct):
     }
     response = requests.post(api, data=data,headers=get_header())
     response_json = json.loads(response.text)
+    log_manager.log("get_captha", response.text)
     if response_json["code"] == 0:
         data = response_json["data"]
         if data["geetest"] == "null":

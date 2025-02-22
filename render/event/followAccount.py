@@ -28,38 +28,72 @@ class FollowAccountManager:
         FollowAccountManager.executor = ThreadPoolExecutor(max_workers=4)
 
     @staticmethod
-    def create_cookie_dict(cookies, bili_ticket, gaia_token=None):
+    def create_cookie_dict(cookies, bili_ticket):
         """创建统一的cookie字典"""
-        base_cookies = {
-            "buvid3": cookies.get("buvid3"),
-            "buvid4": cookies.get("buvid4"),
-            "SESSDATA": cookies.get("SESSDATA"),
-            "bili_jct": cookies.get("bili_jct"),
-            "sid": cookies.get("sid"),
-            "DedeUserID": cookies.get("DedeUserID"),
-            "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
-            "bili_ticket": bili_ticket
-        }
-        if gaia_token:
-            base_cookies["x-bili-gaia-vtoken"] = gaia_token
+        #先检测cookies中是否有x-bili-gaia-vtoken，如果有添加
+        if "x-bili-gaia-vtoken" not in cookies:
+            base_cookies = {
+                "buvid3": cookies.get("buvid3"),
+                "buvid4": cookies.get("buvid4"),
+                "SESSDATA": cookies.get("SESSDATA"),
+                "bili_jct": cookies.get("bili_jct"),
+                "sid": cookies.get("sid"),
+                "DedeUserID": cookies.get("DedeUserID"),
+                "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
+                "bili_ticket": bili_ticket
+            }
+        else:
+            base_cookies = {
+                "buvid3": cookies.get("buvid3"),
+                "buvid4": cookies.get("buvid4"),
+                "SESSDATA": cookies.get("SESSDATA"),
+                "bili_jct": cookies.get("bili_jct"),
+                "sid": cookies.get("sid"),
+                "DedeUserID": cookies.get("DedeUserID"),
+                "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
+                "bili_ticket": bili_ticket,
+                "x-bili-gaia-vtoken": cookies.get("x-bili-gaia-vtoken")
+            }
         return base_cookies
 
     @staticmethod
     def handle_follow_result(result, comment_table, uid, cookies):
         """处理关注结果"""
-        if result == 0:
+        if result["code"] == 0:
             set_follow_status(comment_table, uid, "已关注")
         elif isinstance(result, dict):
-            if result.get("code") == -352:
+            if result["code"] == -352:
                 v_voucher = result["data"]["v_voucher"]
-                gaia_token = get_gaia_vtoken(v_voucher, cookies.get("bili_jct"), 
+                gaia_token_result = get_gaia_vtoken(v_voucher, cookies.get("bili_jct"),
                     "https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D")
-                result = follow_account(uid, cookies, gaia_token, if_captcha=True)
-                if result == 0:
+                if gaia_token_result.get("code") != 0:
+                    set_follow_status(comment_table, uid, "风控验证失败")
+                    return True
+                gaia_token = gaia_token_result["data"]["grisk_id"]
+                #写入到当前的cookie中并保存,路径./cookies/{uid}.txt
+                # 新增写入cookie文件逻辑
+                account_uid = cookies.get("DedeUserID")
+                file_path = f"./cookies/{account_uid}.txt"
+                try:
+                    # 读取现有内容并更新
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        lines = [line for line in f if not line.startswith('x-bili-gaia-vtoken=')]
+                    
+                    # 添加新token行
+                    lines.append(f"x-bili-gaia-vtoken={gaia_token}\n")
+                    
+                    # 写回文件
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.writelines(lines)
+                except Exception as e:
+                    log_manager.log("handle_follow_result", f"写入cookie文件失败: {str(e)}")
+                
+                result = follow_account(uid, cookies)
+                if result["code"] == 0:
                     set_follow_status(comment_table, uid, "已关注")
                 else:
                     set_follow_status(comment_table, uid, "风控流程验证失败，尝试重复关注失败")
-            elif result.get("code") == 22014:
+            elif result["code"]== 22014:
                 set_follow_status(comment_table, uid, "已关注")
             else:
                 set_follow_status(comment_table, uid, "关注失败")
@@ -152,44 +186,19 @@ def follow_accounts_task(selected_accounts, uids, follow_limit, delay_seconds, a
 
 # 关注账号
 #传入cookies和被关注用户ID    gaia_vtoken
-def follow_account(fid, cookies,gaia_token=None,if_captcha=False):
+def follow_account(fid, cookies):
     """关注账号"""
-    if if_captcha == False:
+    cookie_dict = FollowAccountManager.create_cookie_dict(cookies, get_bili_ticket(cookies.get("bili_jct")))
+    #检测cookies中是否有x-bili-gaia-vtoken，如果有添加到api中
+    if cookie_dict.get("x-bili-gaia-vtoken") is None:
         url = f"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D"
     else:
-        url = f"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D&gaia_vtoken={gaia_token}"
+        url = f"https://api.bilibili.com/x/relation/modify?x-bili-device-req-json=%7B%27platform%27%3A+%27web%27%7D&gaia_vtoken={cookie_dict['x-bili-gaia-vtoken']}"
     bili_ticket = get_bili_ticket(cookies.get("bili_jct"))
-    if if_captcha == False:
-        cookie_dict = {
-            "buvid3": cookies.get("buvid3"),
-            "buvid4": cookies.get("buvid4"),
-            "SESSDATA": cookies.get("SESSDATA"),
-            "bili_jct": cookies.get("bili_jct"),  # CSRF Token即为bili_jct
-            "sid": cookies.get("sid"),
-            "DedeUserID": cookies.get("DedeUserID"),
-            "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
-            "bili_ticket": bili_ticket
-        }
-    else:
-        cookie_dict = {
-            "buvid3": cookies.get("buvid3"),
-            "buvid4": cookies.get("buvid4"),
-            "SESSDATA": cookies.get("SESSDATA"),
-            "bili_jct": cookies.get("bili_jct"),  # CSRF Token即为bili_jct
-            "sid": cookies.get("sid"),
-            "DedeUserID": cookies.get("DedeUserID"),
-            "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5"),
-            "bili_ticket": bili_ticket,
-            "x-bili-gaia-vtoken": gaia_token,
-        }
     # post参数
     payload = f"csrf={cookies.get('bili_jct')}&act=1&re_src=14&fid={fid}"
     response = requests.post(url, cookies=cookie_dict, headers=get_header(), data=payload)
     data = response.json()
     print(f"关注账户{fid}: {data['message']},code:{data['code']}")
     log_manager.log(f"关注账户{fid}", f"{data['message']},code:{data['code']}")
-    if data["code"] == 0:
-        return data["code"]
-    else:
-        log_manager.log("follow_account", response.text)
-        return data # 0为成功
+    return data
